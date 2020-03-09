@@ -6,26 +6,48 @@ class Criterion():
 
     """
     This class compute the metric value used to decide to split a node or not.
+
+    Parameters
+    ----------
+    criterion: str, {"gini", "entropy"}.
     """
 
     def __init__(self,criterion):
 
-        if criterion == "gini":
-            self.node_impurity = self.node_gini
+        self.criterion = criterion
 
-        if criterion == "entropy":
-            self.node_impurity = self.node_entropy
+
+    def node_impurity(self, sample):
+
+        """
+        Returns entropy or gini coefficient from a given sample.
+
+        Parameters
+        ----------
+        sample: list, data sample of values.
+        """
+
+        if self.criterion == "gini":
+            return self.node_gini(sample)
+
+        if self.criterion == "entropy":
+            return self.node_entropy(sample)
 
 
     def node_entropy(self, sample):
+
         """
-        Returns entropy of a divided group of data
-        Data may have multiple classes
+        Returns entropy of a divided group of data (may have multiple classes).
+
+        Parameters
+        ----------
+        sample: list, data sample of values.
         """
+
         entropy = 0
         n_samples = len(sample)
         classes = set(sample)
-        for c in classes:   # for each class, get impurity
+        for c in classes:
             count_class = sum(sample==c)
 
             if count_class>0:
@@ -37,10 +59,15 @@ class Criterion():
 
 
     def node_gini(self, sample):
+
         """
-        Returns gini of a divided group of data
-        Data may have multiple classes
+        Returns gini of a divided group of data (may have multiple classes).
+
+        Parameters
+        ----------
+        sample: list, data sample of values.
         """
+
         mad = np.abs(np.subtract.outer(sample, sample)).mean()
         gini = mad/np.mean(sample)/2
 
@@ -49,33 +76,61 @@ class Criterion():
 
 class Splitter():
 
+    """
+    Class compute the splitting feature and threshold given a node sample.
+    It computes the "best split" algorithm.
+
+    Parameters
+    ---------
+    criterion: Criterion.
+    """
+
     def __init__(self, criterion):
 
         self.criterion = criterion
 
+
     def find_best_split(self, X, y):
+
+        """
+        Compute the feature and value which performs the best split given
+        a dataset.
+
+        Parameters
+        ----------
+        X : dense matrix, The training input samples.
+        y : list, array-like (n_samples,). The target values as integers
+        """
 
         index = None
         min_impurity = 1
         threshold = None
 
-        for col_index, col_values in enumerate(X.T):
-            impurity, cutoff = self.find_best_value(col_values, y)
+        for feature_index, feature_values in enumerate(X.T):
+            impurity, cutoff = self.find_best_value(feature_values, y)
 
             if impurity <= min_impurity:
                 min_impurity = impurity
-                index = col_index
+                index = feature_index
                 threshold = cutoff
 
         return index, threshold, min_impurity
 
 
-    def find_best_value(self, col_values, y):
+    def find_best_value(self, feature_values, y):
+
+        """
+        Given a feature column, which minimize the criterion of the target y.
+
+        Parameters
+        ----------
+        feature_values : list, array-like of shape (n_samples,). Column feature
+        y : list, array-like (n_samples,). The target values as integers
+        """
 
         min_impurity = 10
-
-        for value in set(col_values):
-            y_predict = col_values < value
+        for value in set(feature_values):
+            y_predict = feature_values < value
             impurity = self.criterion.node_impurity(y[~y_predict])
             impurity += self.criterion.node_impurity(y[y_predict])
 
@@ -88,7 +143,21 @@ class Splitter():
 
 class Tree():
 
+    """
+    Base tree. Given a built tree model, this class walk through it to perform
+    predictions.
+    """
+
     def predict(self, X):
+
+        """
+        Given a dataset, return an array with the class predicted for each data
+        row.
+
+        Parameters
+        ----------
+        X : dense matrix, The training input samples.
+        """
 
         results = np.zeros(X.shape[0])
         for row_index, row_value in enumerate(X):
@@ -98,6 +167,15 @@ class Tree():
 
 
     def apply(self, row, current_node):
+
+        """
+        Given a dataset row, it crawls through the tree model to return
+        its appropriate leaf value.
+
+        Parameters
+        ----------
+        X : dense matrix, The training input samples.
+        """
 
         current_node = self.trees
 
@@ -112,6 +190,10 @@ class Tree():
 
 class Builder():
 
+    """
+    Factory of trees. It performs the "depth-fashion" algorithm.
+    """
+
     def __init__(self,splitter, max_depth, min_samples_leaf):
 
         self.splitter = splitter
@@ -119,6 +201,16 @@ class Builder():
         self.min_samples_leaf = min_samples_leaf
 
     def build(self, tree, X, y):
+
+        """
+        Given an new of Tree, it builds the tree graph
+
+        Parameters
+        ----------
+        tree: Tree.
+        X : dense matrix, The training input samples.
+        y : list, array-like (n_samples,). The target values as integers
+        """
 
         if all(val == y[0] for val in y):
             return {'val':y[0]}
@@ -128,9 +220,18 @@ class Builder():
 
     def _add_split_node(self, X, y, node={}, depth=0):
 
+        """
+        Given a data set, it calls the splitter recursively to get all
+        the nodes
+        tree: Tree.
+        X : dense matrix, The training input samples.
+        y : list, array-like (n_samples,). The target values as integers.
+        node: dict, node values.
+        depth: current depth of the node.
+        """
+
         if node is None or len(y)==0 or depth >= self.max_depth:
             return None
-
 
         node = {'val': np.round(np.mean(y))}
 
@@ -143,11 +244,10 @@ class Builder():
             X_left = X[X[:,feature] < threshold]
             X_right = X[X[:,feature] >= threshold]
 
-            node['feature'] = feature,
+            node['feature'] = feature
             node['threshold'] = threshold
-            node['left']=self._add_split_node(X_left, y_left, {}, depth+1),
+            node['left']=self._add_split_node(X_left, y_left, {}, depth+1)
             node['right']=self._add_split_node(X_right, y_right, {}, depth+1)
-
 
         self.trees = node
 
@@ -164,7 +264,7 @@ class DecisionTreeClassifier():
     Parameters
     ----------
     criterion : {"gini", "entropy"}, default="gini"
-    splitter : "best"
+    splitter : "depth-first"
     max_depth : int, default=5
     min_samples_leaf: int default=5
     """
@@ -173,15 +273,33 @@ class DecisionTreeClassifier():
         self.max_depth = max_depth
         self.min_samples_leaf = min_samples_leaf
         self.criterion = criterion
-        self.splitter = "best"
+        self.splitter = "depth-first"
 
 
     def load_trained_model(self, node):
+
+        """
+        Load a previous tree graph
+
+        Parameters
+        ----------
+        node: dict, tree graph with json format.
+        """
+
         self.tree_ = node
-        return 1
 
 
     def fit(self, X, y):
+
+        """
+        Train the model.
+
+        Parameters
+        ----------
+        tree: Tree.
+        X : dense matrix, The training input samples.
+        y : list, array-like (n_samples,). The target values as integers
+        """
 
         self.tree_ = Tree()
         self.criterion = Criterion(self.criterion)
@@ -191,9 +309,19 @@ class DecisionTreeClassifier():
                                self.min_samples_leaf)
 
         self.builder.build(self.tree_,X,y)
-        return 1
+
 
     def predict(self, X):
+
+        """
+        Perform prediction from a given dataset.
+
+        Parameters
+        ----------
+        tree: Tree.
+        X : dense matrix, The training input samples.
+        """
+
         self.tree_.predict(X)
 
 
@@ -206,7 +334,7 @@ if __name__=="__main__":
 
     X = iris.data
     y = iris.target
-
+    print(type(X),type(y))
     classifier = DecisionTreeClassifier(max_depth=7)
     m = classifier.fit(X, y)
 

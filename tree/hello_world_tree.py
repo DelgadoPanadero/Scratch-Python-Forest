@@ -1,4 +1,3 @@
-import math
 import numpy as np
 
 
@@ -52,7 +51,7 @@ class Criterion():
 
             if count_class>0:
                 prob = count_class/n_samples
-                entropy = -(prob)*math.log(prob, 2)
+                entropy =- prob*np.log2(prob)
                 entropy += prob*entropy
 
         return entropy
@@ -99,7 +98,7 @@ class Splitter():
         Parameters
         ----------
         X : dense matrix, The training input samples.
-        y : list, array-like (n_samples,). The target values as integers
+        y : list, array-like (n_samples,). The target values as integers.
         """
 
         index = None

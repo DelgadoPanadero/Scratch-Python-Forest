@@ -4,41 +4,47 @@ import numpy as np
 
 class Criterion():
 
+    """
+    This class compute the metric value used to decide to split a node or not.
+    """
+
     def __init__(self,criterion):
 
         if criterion == "gini":
-            self,impurity_function = self.gini
+            self.node_impurity = self.node_gini
 
         if criterion == "entropy":
-            self.impurity_function = self.entropy
+            self.node_impurity = self.node_entropy
 
 
-    @staticmethod
-    def entropy(count_class, n_samples):
-        return -(count_class/n_samples)*math.log(count_class/n_samples, 2)
-
-    @staticmethod
-    def gini(count_class, n_samples):
-        pass
-
-
-    def node_impurity(self, sample):
+    def node_entropy(self, sample):
         """
         Returns entropy of a divided group of data
         Data may have multiple classes
         """
-        impurity = 0
+        entropy = 0
         n_samples = len(sample)
         classes = set(sample)
-
         for c in classes:   # for each class, get impurity
             count_class = sum(sample==c)
 
             if count_class>0:
-                weight = count_class/n_samples
-                impurity += weight*self.impurity_function(count_class, n_samples)
+                prob = count_class/n_samples
+                entropy = -(prob)*math.log(prob, 2)
+                entropy += prob*entropy
 
-        return impurity
+        return entropy
+
+
+    def node_gini(self, sample):
+        """
+        Returns gini of a divided group of data
+        Data may have multiple classes
+        """
+        mad = np.abs(np.subtract.outer(sample, sample)).mean()
+        gini = mad/np.mean(sample)/2
+
+        return gini
 
 
 class Splitter():
@@ -54,9 +60,6 @@ class Splitter():
 
         for col_index, col_values in enumerate(X.T):
             impurity, cutoff = self.find_best_value(col_values, y)
-
-#            if  == 0:    # find the first perfect cutoff. Stop Iterating
-#                return index, cur_cutoff, entropy
 
             if impurity <= min_impurity:
                 min_impurity = impurity

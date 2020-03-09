@@ -50,6 +50,7 @@ class Criterion():
 class Splitter():
 
     def __init__(self, criterion):
+
         self.criterion = criterion
 
     def find_best_split(self, X, y):
@@ -75,7 +76,8 @@ class Splitter():
 
         for value in set(col_values):
             y_predict = col_values < value
-            impurity = self.criterion.node_impurity(y[y_predict])
+            impurity = self.criterion.node_impurity(y[~y_predict])
+            impurity += self.criterion.node_impurity(y[y_predict])
 
             if impurity <= min_impurity:
                 min_impurity = impurity
@@ -110,12 +112,11 @@ class Tree():
 
 class Builder():
 
-    def __init__(self,splitter, max_depth):
+    def __init__(self,splitter, max_depth, min_samples_leaf):
 
-        self.depth=0
         self.splitter = splitter
         self.max_depth = max_depth
-
+        self.min_samples_leaf = min_samples_leaf
 
     def build(self, tree, X, y):
 
@@ -124,8 +125,6 @@ class Builder():
 
         tree.node = self._add_split_node(X,y)
 
-        return 1
-
 
     def _add_split_node(self, X, y, node={}, depth=0):
 
@@ -133,20 +132,23 @@ class Builder():
             return None
 
 
-        feature, threshold, impurity = self.splitter.find_best_split(X, y)
+        node = {'val': np.round(np.mean(y))}
 
-        y_left = y[X[:, feature] < threshold]
-        y_right = y[X[:,feature] >= threshold]
+        if len(y)>=self.min_samples_leaf:
+            feature, threshold, impurity = self.splitter.find_best_split(X, y)
 
-        node = {
-            'feature': feature,
-            'threshold': threshold,
-            'val': np.round(np.mean(y)),
-            'left': self._add_split_node(X[X[:,feature] < threshold], y_left, {}, depth+1),
-            'right': self._add_split_node(X[X[:,feature] >= threshold], y_right, {}, depth+1)
-            }
+            y_left = y[X[:, feature] < threshold]
+            y_right = y[X[:,feature] >= threshold]
 
-        self.depth += 1
+            X_left = X[X[:,feature] < threshold]
+            X_right = X[X[:,feature] >= threshold]
+
+            node['feature'] = feature,
+            node['threshold'] = threshold
+            node['left']=self._add_split_node(X_left, y_left, {}, depth+1),
+            node['right']=self._add_split_node(X_right, y_right, {}, depth+1)
+
+
         self.trees = node
 
         return node
@@ -163,25 +165,30 @@ class DecisionTreeClassifier():
     ----------
     criterion : {"gini", "entropy"}, default="gini"
     splitter : "best"
-    max_depth : int, default=None
-
+    max_depth : int, default=5
+    min_samples_leaf: int default=5
     """
 
-    def __init__(self, max_depth, criterion="entropy"):
+    def __init__(self, max_depth=5, min_samples_leaf=5, criterion="entropy"):
         self.max_depth = max_depth
+        self.min_samples_leaf = min_samples_leaf
         self.criterion = criterion
         self.splitter = "best"
+
 
     def load_trained_model(self, node):
         self.tree_ = node
         return 1
+
 
     def fit(self, X, y):
 
         self.tree_ = Tree()
         self.criterion = Criterion(self.criterion)
         self.splitter = Splitter(self.criterion)
-        self.builder = Builder(self.splitter, self.max_depth)
+        self.builder = Builder(self.splitter,
+                               self.max_depth,
+                               self.min_samples_leaf)
 
         self.builder.build(self.tree_,X,y)
         return 1

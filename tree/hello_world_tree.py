@@ -43,18 +43,18 @@ class Criterion():
         sample: list, data sample of values.
         """
 
-        entropy = 0
-        n_samples = len(sample)
-        classes = set(sample)
-        for c in classes:
-            count_class = sum(sample==c)
+        entropy = 0.0
+        n_classes = set(sample)
+        weighted_n_node_samples = len(sample)
 
-            if 0<count_class<n_samples:
-                prob = count_class/n_samples
-                class_entropy =- prob*np.log2(prob)-(1-prob)*np.log2(1-prob)
-                entropy += prob*class_entropy
+        for c in n_classes:
+            count_k = sum(sample==c)
+            if 0<count_k:
+                count_k /= weighted_n_node_samples
+                entropy -= count_k*np.log2(count_k)
 
         return entropy
+
 
     
     def node_gini(self, sample):

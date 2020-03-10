@@ -56,7 +56,6 @@ class Criterion():
         return entropy
 
 
-    
     def node_gini(self, sample):
 
         """
@@ -66,7 +65,7 @@ class Criterion():
         ----------
         sample: list, data sample of values.
         """
-        
+
         sq_count = 0
         n_classes = set(sample)
         weighted_n_node_samples = len(sample)
@@ -78,8 +77,6 @@ class Criterion():
         gini = 1.0-sq_count/weighted_n_node_samples**2
 
         return gini
-
-
 
 
 class Splitter():
@@ -111,7 +108,7 @@ class Splitter():
         """
 
         index = None
-        min_impurity = 1
+        min_impurity = 100
         threshold = None
 
         for feature_index, feature_values in enumerate(X.T):
@@ -136,7 +133,7 @@ class Splitter():
         y : list, array-like (n_samples,). The target values as integers
         """
 
-        min_impurity = 10
+        min_impurity = 100
         for value in set(feature_values):
             y_predict = feature_values < value
             impurity = self.criterion.node_impurity(y[~y_predict])
@@ -149,13 +146,14 @@ class Splitter():
         return impurity, threshold
 
 
-class Tree():
+class Bonsai():
 
     """
-    Base tree. Given a built tree model, this class walk through it to perform
-    predictions.
+    Base Tree though to work similarly as a lite version of the sklearn Tree
+    class (that is why it is called bonsai). Given a built model, this class
+    walk through it to perform predictions.
     """
-    
+
     def predict(self, X):
 
         """
@@ -177,7 +175,7 @@ class Tree():
     def apply(self, row):
 
         """
-        Given a dataset row, it crawls through the tree model to return
+        Given a dataset row, it crawls through the bonsai model to return
         its appropriate leaf value.
 
         Parameters
@@ -185,7 +183,7 @@ class Tree():
         X : dense matrix, The training input samples.
         """
 
-        current_node=self.node
+        current_node=self.graph
         while current_node.get('threshold'):
             if row[current_node['feature']] < current_node['threshold']:
                 current_node = current_node['left_node']
@@ -195,11 +193,10 @@ class Tree():
             return current_node.get('value')
 
 
-
 class Builder():
 
     """
-    Factory of trees. It performs the "depth-fashion" algorithm.
+    Factory of bonsais. It performs the "depth-fashion" algorithm.
     """
 
     def __init__(self,splitter, max_depth, min_samples_leaf):
@@ -208,41 +205,39 @@ class Builder():
         self.max_depth = max_depth
         self.min_samples_leaf = min_samples_leaf
 
-    def build(self, tree, X, y):
+    def build(self, bonsai, X, y):
 
         """
-        Given an new of Tree, it builds the tree graph
+        Given an new of Bonsai instance, it builds the bonsai graph
 
         Parameters
         ----------
-        tree: Tree.
+        bonsai: Bonsai.
         X : dense matrix, The training input samples.
         y : list, array-like (n_samples,). The target values as integers
         """
 
         if all(val == y[0] for val in y):
-            return {'val':y[0]}
+            bonsai.graph={'val':y[0]}
 
-        tree.node = self._add_split_node(X,y)
+        bonsai.graph = self._add_split_node(X,y)
 
 
-    def _add_split_node(self, X, y, node={}, depth=0):
+    def _add_split_node(self, X, y, depth=0):
 
         """
         Given a data set, it calls the splitter recursively to get all
-        the nodes
-        tree: Tree.
-        
+        the nodes.
+
         Parameters
         ----------
         X : dense matrix, The training input samples.
         y : list, array-like (n_samples,). The target values as integers.
-        node: dict, node values.
         depth: current depth of the node.
         """
 
         node = {'value': np.round(np.mean(y))}
-        
+
         if  len(y)<self.min_samples_leaf or depth >= self.max_depth:
             return node
 
@@ -265,12 +260,12 @@ class Builder():
         return node
 
 
-class DecisionTreeClassifier():
+class DecisionBonsaiClassifier():
 
-    """A decision tree classifier.
-
-    This object is expected to work as the the DecisionTreeClassifier from
-    Scikit-Learn.
+    """
+    A decision tree classifier. This object is expected to work as a lite
+    version of the DecisionTreeClassifier from Scikit-Learn (That is why
+    it is called Bonsai!).
 
     Parameters
     ----------
@@ -280,24 +275,24 @@ class DecisionTreeClassifier():
     min_samples_leaf: int default=5
     """
 
-    def __init__(self, max_depth=5, min_samples_leaf=5, criterion="entropy"):
+    def __init__(self, max_depth=7, min_samples_leaf=1, criterion="entropy"):
         self.max_depth = max_depth
         self.min_samples_leaf = min_samples_leaf
         self.criterion = criterion
         self.splitter = "depth-first"
 
 
-    def load_trained_model(self, node):
+    def load_trained_model(self, graph):
 
         """
-        Load a previous tree graph
+        Load a previous bonsai graph
 
         Parameters
         ----------
-        node: dict, tree graph with json format.
+        graph: dict, bonsai graph with json format.
         """
 
-        self.tree_ = node
+        self.bonsai_.graph = graph
 
 
     def fit(self, X, y):
@@ -307,19 +302,18 @@ class DecisionTreeClassifier():
 
         Parameters
         ----------
-        tree: Tree.
         X : dense matrix, The training input samples.
         y : list, array-like (n_samples,). The target values as integers
         """
 
-        self.tree_ = Tree()
+        self.bonsai_ = Bonsai()
         self.criterion = Criterion(self.criterion)
         self.splitter = Splitter(self.criterion)
         self.builder = Builder(self.splitter,
                                self.max_depth,
                                self.min_samples_leaf)
 
-        self.builder.build(self.tree_,X,y)
+        self.builder.build(self.bonsai_,X,y)
 
 
     def predict(self, X):
@@ -329,26 +323,27 @@ class DecisionTreeClassifier():
 
         Parameters
         ----------
-        tree: Tree.
         X : dense matrix, The training input samples.
         """
 
-        return self.tree_.predict(X)
+        return self.bonsai_.predict(X)
 
 
 if __name__=="__main__":
 
     from sklearn.datasets import load_iris
+    from sklearn.metrics import confusion_matrix
     from pprint import pprint
 
     iris = load_iris()
     X = iris.data
     y = iris.target
 
-    classifier = DecisionTreeClassifier(max_depth=7)
+    classifier = DecisionBonsaiClassifier(max_depth=7)
     m = classifier.fit(X, y)
-    pprint(classifier.tree_.node)
+    print("\n\nBONSAI GRAPH\n")
+    pprint(classifier.bonsai_.graph)
 
+    print("\n\nCONFUSION MATRIX\n")
     prediction = classifier.predict(iris.data)
-    [print(real,pred) for real,pred in zip(y,prediction)]
-
+    print(confusion_matrix(y,prediction))

@@ -66,11 +66,20 @@ class Criterion():
         ----------
         sample: list, data sample of values.
         """
+        
+        sq_count = 0
+        n_classes = set(sample)
+        weighted_n_node_samples = len(sample)
 
-        mad = np.abs(np.subtract.outer(sample, sample)).mean()
-        gini = mad/np.mean(sample)/2
+        for c in range(n_classes):
+            count_k = sum(sample==c)
+            sq_count += count_k**2
+
+        gini = 1.0-sq_count/weighted_n_node_samples**2
 
         return gini
+
+
 
 
 class Splitter():

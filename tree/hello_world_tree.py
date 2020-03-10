@@ -232,6 +232,9 @@ class Builder():
         Given a data set, it calls the splitter recursively to get all
         the nodes
         tree: Tree.
+        
+        Parameters
+        ----------
         X : dense matrix, The training input samples.
         y : list, array-like (n_samples,). The target values as integers.
         node: dict, node values.

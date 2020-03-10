@@ -241,26 +241,26 @@ class Builder():
         depth: current depth of the node.
         """
 
-        if node is None or len(y)==0 or depth >= self.max_depth:
-            return None
+        node = {'value': np.round(np.mean(y))}
+        
+        if  len(y)<self.min_samples_leaf or depth >= self.max_depth:
+            return node
 
-        node = {'val': np.round(np.mean(y))}
+        feature, threshold, impurity = self.splitter.find_best_split(X, y)
 
-        if len(y)>=self.min_samples_leaf:
-            feature, threshold, impurity = self.splitter.find_best_split(X, y)
+        y_left = y[X[:,feature] < threshold]
+        y_right =y[X[:,feature] >=threshold]
 
-            y_left = y[X[:, feature] < threshold]
-            y_right = y[X[:,feature] >= threshold]
+        if (len(y_left) >= self.min_samples_leaf and
+            len(y_right)>= self.min_samples_leaf):
 
-            X_left = X[X[:,feature] < threshold]
-            X_right = X[X[:,feature] >= threshold]
+            X_left = X[X[:, feature] < threshold]
+            X_right = X[X[:,feature] >=threshold]
 
-            node['feature'] = feature
-            node['threshold'] = threshold
-            node['left']=self._add_split_node(X_left, y_left, {}, depth+1)
-            node['right']=self._add_split_node(X_right, y_right, {}, depth+1)
-
-        self.trees = node
+            node[ 'feature'  ] = feature
+            node['threshold' ] = threshold
+            node['left_node' ] = self._add_split_node(X_left, y_left, depth+1)
+            node['right_node'] = self._add_split_node(X_right,y_right,depth+1)
 
         return node
 

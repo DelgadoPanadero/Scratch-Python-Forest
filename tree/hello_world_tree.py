@@ -49,14 +49,14 @@ class Criterion():
         for c in classes:
             count_class = sum(sample==c)
 
-            if count_class>0:
+            if 0<count_class<n_samples:
                 prob = count_class/n_samples
-                entropy =- prob*np.log2(prob)
-                entropy += prob*entropy
+                class_entropy =- prob*np.log2(prob)-(1-prob)*np.log2(1-prob)
+                entropy += prob*class_entropy
 
         return entropy
 
-
+    
     def node_gini(self, sample):
 
         """

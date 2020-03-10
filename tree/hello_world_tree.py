@@ -155,7 +155,7 @@ class Tree():
     Base tree. Given a built tree model, this class walk through it to perform
     predictions.
     """
-
+    
     def predict(self, X):
 
         """
@@ -174,7 +174,7 @@ class Tree():
         return results
 
 
-    def apply(self, row, current_node):
+    def apply(self, row):
 
         """
         Given a dataset row, it crawls through the tree model to return
@@ -185,15 +185,15 @@ class Tree():
         X : dense matrix, The training input samples.
         """
 
-        current_node = self.trees
-
-        while current_node.get('cutoff'):
-            if row[current_node['index_col']] < current_node['cutoff']:
-                current_node = current_node['left']
+        current_node=self.node
+        while current_node.get('threshold'):
+            if row[current_node['feature']] < current_node['threshold']:
+                current_node = current_node['left_node']
             else:
-                current_node = current_node['right']
+                current_node = current_node['right_node']
         else:
-            return current_node.get('val')
+            return current_node.get('value')
+
 
 
 class Builder():
@@ -333,7 +333,7 @@ class DecisionTreeClassifier():
         X : dense matrix, The training input samples.
         """
 
-        self.tree_.predict(X)
+        return self.tree_.predict(X)
 
 
 if __name__=="__main__":
@@ -342,11 +342,13 @@ if __name__=="__main__":
     from pprint import pprint
 
     iris = load_iris()
-
     X = iris.data
     y = iris.target
-    print(type(X),type(y))
+
     classifier = DecisionTreeClassifier(max_depth=7)
     m = classifier.fit(X, y)
-
     pprint(classifier.tree_.node)
+
+    prediction = classifier.predict(iris.data)
+    [print(real,pred) for real,pred in zip(y,prediction)]
+

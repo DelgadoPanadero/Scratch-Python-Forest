@@ -108,31 +108,6 @@ class RandomGardenClassifier():
         return all_proba
 
 
-    def apply(self, X):
-
-        """
-        Apply trees in the forest to X, return leaf indices.
-
-        Parameters
-        ----------
-        X : {array-like, dense matrix} of shape (n_samples, n_features).
-
-        Returns
-        -------
-        X_leaves : ndarray of shape (n_samples, n_estimators)
-            For each datapoint x in X and for each tree in the forest,
-            return the index of the leaf x ends up in.
-        """
-
-        X = self._validate_X_predict(X)
-        results = Parallel(n_jobs=self.n_jobs, verbose=self.verbose,
-                           **_joblib_parallel_args(prefer="threads"))(
-            delayed(tree.apply)(X, check_input=False)
-            for tree in self.estimators_)
-
-        return np.array(results).T
-
-
     def fit(self, X, y, sample_weight=None):
         """
         Build a forest of trees from the training set (X, y).

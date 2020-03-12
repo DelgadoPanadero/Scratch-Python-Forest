@@ -81,7 +81,8 @@ class RandomGardenClassifier():
         return all_proba
 
 
-    def fit(self, X, y, sample_weight=None):
+    def fit(self, X, y):
+
         """
         Build a forest of trees from the training set (X, y).
         Parameters
@@ -96,15 +97,17 @@ class RandomGardenClassifier():
 
         n_samples = X.shape[0]
         self.n_features_= X.shape[1]
+        self.classes_ = np.unique(y)
+        self.n_classes_ = self.classes_.shape[0]
+
         n_samples_bootstrap = self.max_samples if self.max_samples else n_samples
 
-
-        self.estimators_ = [self._make_estimator() for i in range(n_estimators)]
+        self.estimators_ = [self._make_estimator() for i in range(self.n_estimators_)]
 
         random = np.random.RandomState()
         for estimator in self.estimators_: #TODO class balanced sample
             sample_indices = random.randint(0, n_samples, n_samples_bootstrap)
-            sample_counts = np.bincount(sample_indices, minlength=n_samples)
-            estimator.fit(X[sample_counts,:], y[sample_counts])
+            estimator.fit(X[sample_indices,:], y[sample_indices])
 
         return self
+

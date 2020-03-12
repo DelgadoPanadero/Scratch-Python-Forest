@@ -90,10 +90,31 @@ class Splitter():
     criterion: Criterion.
     """
 
-    def __init__(self, criterion):
+    def __init__(self, criterion, max_features):
 
         self.criterion = criterion
+        self.max_features = max_features
 
+
+    def features_bagging(self, X):
+
+        """
+        It performs the bagging feature selection.
+
+        Parameters
+        ----------
+        X : dense matrix, The training input samples.
+        """
+
+        n_features = X.shape[1]
+
+        if self.max_features is None:
+            self.max_features = int(np.log2(n_features))
+
+        random = np.random.RandomState()
+        self.sample_features = random.choice(n_features,
+                                             self.max_features,
+                                             replace=False)
 
     def find_best_split(self, X, y):
 
@@ -112,12 +133,13 @@ class Splitter():
         threshold = None
 
         for feature_index, feature_values in enumerate(X.T):
-            impurity, cutoff = self.find_best_value(feature_values, y)
+            if feature_index in self.sample_features:
+                impurity, cutoff = self.find_best_value(feature_values, y)
 
-            if impurity <= min_impurity:
-                min_impurity = impurity
-                index = feature_index
-                threshold = cutoff
+                if impurity <= min_impurity:
+                    min_impurity = impurity
+                    index = feature_index
+                    threshold = cutoff
 
         return index, threshold, min_impurity
 
@@ -153,6 +175,7 @@ class Bonsai():
     class (that is why it is called bonsai). Given a built model, this class
     walk through it to perform predictions.
     """
+
 
     def predict(self, X):
 
@@ -217,9 +240,7 @@ class Builder():
         y : list, array-like (n_samples,). The target values as integers
         """
 
-        if all(val == y[0] for val in y):
-            bonsai.graph={'val':y[0]}
-
+        self.splitter.features_bagging(X)
         bonsai.graph = self._add_split_node(X,y)
 
 
@@ -275,11 +296,17 @@ class DecisionBonsaiClassifier():
     min_samples_leaf: int default=5
     """
 
-    def __init__(self, max_depth=7, min_samples_leaf=1, criterion="entropy"):
+    def __init__(self,
+                 criterion="entropy",
+                 max_depth=7,
+                 min_samples_leaf=1,
+                 max_features=None):
+
+        self.criterion = criterion
         self.max_depth = max_depth
         self.min_samples_leaf = min_samples_leaf
-        self.criterion = criterion
         self.splitter = "depth-first"
+        self.max_features = max_features
 
 
     def load_trained_model(self, graph):
@@ -308,7 +335,8 @@ class DecisionBonsaiClassifier():
 
         self.bonsai_ = Bonsai()
         self.criterion = Criterion(self.criterion)
-        self.splitter = Splitter(self.criterion)
+        self.splitter = Splitter(self.criterion,
+                                 self.max_features)
         self.builder = Builder(self.splitter,
                                self.max_depth,
                                self.min_samples_leaf)

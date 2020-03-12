@@ -33,36 +33,7 @@ class RandomGardenClassifier():
         estimator.set_params(**{p: getattr(self, p) for p in self.estimator_params})
 
         return estimator
-
-
-    def _set_oob_score(self, X, y):
-
-        """
-        Compute out-of-bag score.
-        """
-
-        n_classes_ = len(set(y))
-        n_samples = y.shape[0]
-
-        oob_score = 0.0
-        oob_decision_function = []
-        predictions = np.zeros((n_samples, n_classes_))
-
-        n_samples_bootstrap = self.max_samples if self.max_samples else n_samples
-
-        for estimator in self.estimators_:
-            random = np.random.RandomState()
-            sample_indices = random.randint(0, n_samples, n_samples_bootstrap)
-            #unsampled_mask = 0==np.bincount(sample_indices, minlength=n_samples)
-            #unsampled_indices = np.arange(n_samples)[unsampled_mask]
-            p_estimator = estimator.predict_proba(X[sampled_indices, :])
-
-            predictions[unsampled_indices, :] += p_estimator
-
-        decision = predictions/predictions.sum(axis=1)[:, np.newaxis]
-        self.oob_decision_function_=decision
-        self.oob_score += np.mean(y == np.argmax(predictions, axis=1)) #, axis=0)
-
+    
 
     def predict(self, X):
 
@@ -133,7 +104,5 @@ class RandomGardenClassifier():
             sample_indices = random.randint(0, n_samples, n_samples_bootstrap)
             sample_counts = np.bincount(sample_indices, minlength=n_samples)
             estimator.fit(X[sample_counts,:], y[sample_counts])
-
-        self._set_oob_score(X, y) if self.oob_score else None
 
         return self

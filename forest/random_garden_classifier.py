@@ -35,7 +35,7 @@ class RandomGardenClassifier():
         [setattr(estimator, p, v) for p, v in self.estimator_params.items()]
 
         return estimator
-    
+
 
     def predict(self, X):
 
@@ -73,8 +73,9 @@ class RandomGardenClassifier():
         all_proba = np.zeros((X.shape[0], self.n_classes_), dtype=np.float64)
 
         for estimator in self.estimators_:
-            prediction = estimator.predict_proba(X)
-            all_proba += prediction
+            prediction = estimator.predict(X)
+            prediction_one_hot = np.eye(self.n_classes_)[prediction]
+            all_proba += prediction_one_hot
 
         all_proba /= len(self.estimators_)
 
@@ -110,4 +111,3 @@ class RandomGardenClassifier():
             estimator.fit(X[sample_indices,:], y[sample_indices])
 
         return self
-

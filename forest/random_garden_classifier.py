@@ -1,6 +1,11 @@
+import copy
 import numpy as np
 
+from tree import DecisionBonsaiClassifier
+
+
 class RandomGardenClassifier():
+
     """
     Base class for forest of trees-based classifiers.
     Warning: This class should not be used directly. Use derived classes
@@ -8,18 +13,15 @@ class RandomGardenClassifier():
     """
 
     def __init__(self,
-                 base_estimator,
                  n_estimators=100,
-                 estimator_params=tuple(),
+                 estimator_params=dict(),
                  bootstrap=False,
-                 oob_score=False,
                  max_samples=None):
 
-        self.base_estimator_ base_estimator
+        self.base_estimator_ = DecisionBonsaiClassifier()
         self.n_estimators_ = n_estimators
         self.estimator_params=estimator_params
         self.bootstrap = bootstrap
-        self.obb_score = obb_score
         self.max_samples = max_samples
 
 
@@ -29,8 +31,8 @@ class RandomGardenClassifier():
         Make and configure a copy of the `base_estimator_` attribute.
         """
 
-        estimator = clone(self.base_estimator_)
-        estimator.set_params(**{p: getattr(self, p) for p in self.estimator_params})
+        estimator = copy.deepcopy(self.base_estimator_)
+        [setattr(estimator, p, v) for p, v in self.estimator_params.items()]
 
         return estimator
     

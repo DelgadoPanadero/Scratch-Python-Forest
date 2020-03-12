@@ -192,7 +192,7 @@ class Bonsai():
         for row_index, row_value in enumerate(X):
             results[row_index] = self.apply(row_value)
 
-        return results
+        return results.astype(int)
 
 
     def apply(self, row):

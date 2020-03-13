@@ -111,3 +111,27 @@ class RandomGardenClassifier():
             estimator.fit(X[sample_indices,:], y[sample_indices])
 
         return self
+
+
+if __name__=="__main__":
+
+
+    import sys, os
+    sys.path.insert(0, os.path.abspath('..'))
+
+    from sklearn.datasets import load_iris
+    from sklearn.metrics import confusion_matrix
+    from pprint import pprint
+
+    iris = load_iris()
+    X = iris.data
+    y = iris.target
+
+
+    classifier = RandomGardenClassifier()
+    m = classifier.fit(X, y)
+    print(m)
+
+    print("\n\nCONFUSION MATRIX\n")
+    prediction = classifier.predict(iris.data)
+    print(confusion_matrix(y,prediction))

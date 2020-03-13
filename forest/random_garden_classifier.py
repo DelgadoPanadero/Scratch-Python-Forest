@@ -12,17 +12,20 @@ class RandomGardenClassifier():
     instead.
     """
 
+    base_estimator_ = DecisionBonsaiClassifier()
+
     def __init__(self,
                  n_estimators=100,
                  estimator_params=dict(),
-                 bootstrap=False,
-                 max_samples=None):
+                 max_samples=None,
+                 max_features=None):
 
-        self.base_estimator_ = DecisionBonsaiClassifier()
-        self.n_estimators_ = n_estimators
-        self.estimator_params=estimator_params
-        self.bootstrap = bootstrap
         self.max_samples = max_samples
+        self.max_features = max_features
+        self.n_estimators_ = n_estimators
+        self.estimator_params = estimator_params
+
+        self.estimator_params["max_features"] = max_features
 
 
     def _make_estimator(self):
@@ -97,13 +100,20 @@ class RandomGardenClassifier():
         """
 
         n_samples = X.shape[0]
+        n_samples_bootstrap = n_samples
         self.n_features_= X.shape[1]
         self.classes_ = np.unique(y)
         self.n_classes_ = self.classes_.shape[0]
 
-        n_samples_bootstrap = self.max_samples if self.max_samples else n_samples
+        if self.max_features is None:
+            self.max_features = X.shape[1]
 
-        self.estimators_ = [self._make_estimator() for i in range(self.n_estimators_)]
+        if self.max_samples:
+            n_samples_bootstrap=self.max_samples
+
+        self.estimators_ = []
+        for i in range(self.n_estimators_):
+            self.estimators_.append(self._make_estimator())
 
         random = np.random.RandomState()
         for estimator in self.estimators_: #TODO class balanced sample
@@ -116,9 +126,6 @@ class RandomGardenClassifier():
 if __name__=="__main__":
 
 
-    import sys, os
-    sys.path.insert(0, os.path.abspath('..'))
-
     from sklearn.datasets import load_iris
     from sklearn.metrics import confusion_matrix
     from pprint import pprint
@@ -127,8 +134,14 @@ if __name__=="__main__":
     X = iris.data
     y = iris.target
 
+    estimator_params = {
+        "max_features": X.shape[1]-2,
+        "max_samples" : X.shape[0]/0.6
+    }
 
-    classifier = RandomGardenClassifier()
+    classifier = RandomGardenClassifier(n_estimators=100,
+                                        estimator_params=dict())
+
     m = classifier.fit(X, y)
     print(m)
 

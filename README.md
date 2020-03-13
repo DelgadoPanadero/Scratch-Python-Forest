@@ -6,7 +6,6 @@ This project consist on implementing common tree and forest algorithms in plain 
 
 * Add new algorithms and metrics to research and test new implementations.
 
-![PythonBonsai](PythonBonsai.png)
 
 #### Dependencies
 
@@ -14,6 +13,10 @@ This project consist on implementing common tree and forest algorithms in plain 
 - Numpy==1.18.1
 - SciPy==1.4.1
 
+
+<p align="center">
+    <img src="PythonBonsai.png" alt="Image" width="50%" height="50%" />
+</p>
 
 ## The Zen of Python Trees
 
@@ -76,14 +79,6 @@ class RandomGardenClassifier():
     base_estimator_ = DecisionBonsaiClassifier()
     
 ```
-
-#### Todo
-
-* Create DecisionTreeRegressor.
-
-* Plot_tree.
-
-* Develop Non-max-supression.
 
 #### Contact and Help
 

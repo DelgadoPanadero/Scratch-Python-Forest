@@ -52,3 +52,24 @@ class BonsaiSquareBaler():
 
             self._divide_box_node(left_node, left_box )
             self._divide_box_node(right_node,right_box)
+
+
+if __name__=="__main__":
+
+    from sklearn.datasets import load_iris
+    from tree import DecisionBonsaiClassifier
+
+    iris = load_iris()
+    X = iris.data
+    y = iris.target
+
+    classifier = DecisionBonsaiClassifier(max_depth=7)
+    m = classifier.fit(X, y)
+
+    bonsai_graph = classifier.bonsai_.graph
+
+    baler = BonsaiSquareBaler(X)
+    print(baler.global_box)
+
+    baler.bale_bonsai(bonsai_graph)
+    print(baler.boxes)

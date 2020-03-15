@@ -1,1 +1,1 @@
-from .bonsai_square_baler import BonsaiSquareBaler
+from .bonsai_harvester import BonsaiHarvester

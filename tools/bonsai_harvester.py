@@ -8,20 +8,39 @@ class BonsaiHarvester():
     This class convert a Bonsai json model into a list of numpy array boxes.
     Each of this boxes is a numpy array with shape (n_features,2) and it stores
     the feature space dimension of each leaf node.
+    
+    Parameters
+    ----------
+    X : {array-like, dense matrix} of shape (n_samples, n_features). Tran data.
     """
 
     def __init__(self, X):
         self.leaf_boxes = []
         self.bonsai_box = X
-
+        
 
     @property
     def bonsai_box(self):
+        
+        """
+        Numpy array with the dimensaions of the training data domain in the 
+        feature space.
+        """
+        
         return self._bonsai_box
 
 
     @bonsai_box.setter
     def bonsai_box(self, X):
+        
+        """
+        Given the data, the bonsai_box property is set automatically in the
+        __init__().
+        
+        Parameters
+        ----------
+        X : {array-like, dense matrix} shape (n_samples, n_features). Tran data.
+        """
 
         bonsai_box = np.zeros((X.shape[1],2), dtype=float)
         bonsai_box[:,0] = np.amin(X, axis=0)
@@ -31,12 +50,31 @@ class BonsaiHarvester():
 
 
     def harvest_bonsai(self, bonsai_graph):
-
+        
+        """
+        Given the Bonsai json graph, compute the leafs space domain.
+        
+        Parameters
+        ----------
+        node: Bonsai graph or Bonsai graph node.
+        """
+        
         self._divide_box_node(bonsai_graph, self.bonsai_box)
 
 
     def _divide_box_node(self, node, parent_box):
 
+        """
+        Recursive method to parse the Bonsai graph until the leafs and obtain
+        its feature space domain.
+        
+        Parameters
+        ----------
+        node: Bonsai graph or Bonsai graph node.
+        parent_box: {array-like, dense matrix} shape (n_features,2). 
+            Domain of the parent node.
+        """
+        
         if not node.get('threshold'):
             self.leaf_boxes.append(parent_box)
 

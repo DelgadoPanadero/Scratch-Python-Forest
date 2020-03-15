@@ -108,9 +108,13 @@ class Splitter():
 
         n_features = X.shape[1]
         random = np.random.RandomState()
-        self.sample_features = random.choice(n_features,
-                                             self.max_features,
-                                             replace=True)
+        self.sample_features = [i for i in range(n_features)]
+
+        if self.max_features<n_features:
+            self.sample_features = random.choice(n_features,
+                                                 self.max_features,
+                                                 replace=True)
+
 
     def find_best_split(self, X, y):
 
@@ -236,7 +240,10 @@ class Builder():
         y : list, array-like (n_samples,). The target values as integers
         """
 
-        self.splitter.features_bagging(X) if max_features!=None else None
+        if self.splitter.max_features is None:
+            self.splitter.max_features=X.shape[1]
+
+        self.splitter.features_bagging(X)
         bonsai.graph = self._add_split_node(X,y)
 
 
@@ -255,7 +262,7 @@ class Builder():
 
         node = {'value': np.round(np.mean(y))}
 
-        if  len(y)<self.min_samples_leaf or depth >= self.max_depth:
+        if len(y)<self.min_samples_leaf or depth >= self.max_depth:
             return node
 
         if len(np.unique(y))==1:

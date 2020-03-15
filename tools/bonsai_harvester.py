@@ -2,7 +2,7 @@ import copy
 import numpy as np
 
 
-class BonsaiSquareBaler():
+class BonsaiHarvester():
 
     """
     This class convert a Bonsai json model into a list of numpy array boxes.
@@ -11,34 +11,34 @@ class BonsaiSquareBaler():
     """
 
     def __init__(self, X):
-        self.boxes = []
-        self.global_box = X
+        self.leaf_boxes = []
+        self.bonsai_box = X
 
 
     @property
-    def global_box(self):
-        return self._global_box
+    def bonsai_box(self):
+        return self._bonsai_box
 
 
-    @global_box.setter
-    def global_box(self, X):
+    @bonsai_box.setter
+    def bonsai_box(self, X):
 
-        global_box = np.zeros((X.shape[1],2), dtype=float)
-        global_box[:,0] = np.amin(X, axis=0)
-        global_box[:,1] = np.amax(X, axis=0)
+        bonsai_box = np.zeros((X.shape[1],2), dtype=float)
+        bonsai_box[:,0] = np.amin(X, axis=0)
+        bonsai_box[:,1] = np.amax(X, axis=0)
 
-        self._global_box = global_box
+        self._bonsai_box = bonsai_box
 
 
-    def bale_bonsai(self, bonsai_graph):
+    def harvest_bonsai(self, bonsai_graph):
 
-        self._divide_box_node(bonsai_graph, self.global_box)
+        self._divide_box_node(bonsai_graph, self.bonsai_box)
 
 
     def _divide_box_node(self, node, parent_box):
 
         if not node.get('threshold'):
-            self.boxes.append(parent_box)
+            self.leaf_boxes.append(parent_box)
 
         else:
             left_node = node.get(' left_node', {})
@@ -66,10 +66,10 @@ if __name__=="__main__":
     classifier = DecisionBonsaiClassifier(max_depth=7)
     m = classifier.fit(X, y)
 
-    bonsai_graph = classifier.bonsai_.graph
+    bonsai = classifier.bonsai_.graph
 
-    baler = BonsaiSquareBaler(X)
-    print(baler.global_box)
+    harvester = BonsaiHarvester(X)
+    print(harvester.bonsai_box)
 
-    baler.bale_bonsai(bonsai_graph)
-    print(baler.boxes)
+    harvester.harvest_bonsai(bonsai)
+    print(harvester.leaf_boxes)

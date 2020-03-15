@@ -258,6 +258,9 @@ class Builder():
         if  len(y)<self.min_samples_leaf or depth >= self.max_depth:
             return node
 
+        if len(np.unique(y))==1:
+            return node
+
         feature, threshold, impurity = self.splitter.find_best_split(X, y)
 
         y_left = y[X[:,feature] < threshold]

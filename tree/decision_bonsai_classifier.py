@@ -96,10 +96,10 @@ class Splitter():
         self.max_features = max_features
 
 
-    def features_bagging(self, X):
+    def feature_sampling(self, X):
 
         """
-        It performs the bagging feature selection.
+        It performs the sample feature selection.
 
         Parameters
         ----------
@@ -107,13 +107,16 @@ class Splitter():
         """
 
         n_features = X.shape[1]
-        random = np.random.RandomState()
         self.sample_features = [i for i in range(n_features)]
 
+        if self.max_features is None:
+            self.max_features = n_features
+
         if self.max_features<n_features:
+            random = np.random.RandomState()
             self.sample_features = random.choice(n_features,
                                                  self.max_features,
-                                                 replace=True)
+                                                 replace=False)
 
 
     def find_best_split(self, X, y):
@@ -240,10 +243,7 @@ class Builder():
         y : list, array-like (n_samples,). The target values as integers
         """
 
-        if self.splitter.max_features is None:
-            self.splitter.max_features=X.shape[1]
-
-        self.splitter.features_bagging(X)
+        self.splitter.feature_sampling(X)
         bonsai.graph = self._add_split_node(X,y)
 
 

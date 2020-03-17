@@ -243,7 +243,6 @@ class Builder():
         y : list, array-like (n_samples,). The target values as integers
         """
 
-        self.splitter.feature_sampling(X)
         bonsai.graph = self._add_split_node(X,y)
 
 
@@ -259,6 +258,8 @@ class Builder():
         y : list, array-like (n_samples,). The target values as integers.
         depth: current depth of the node.
         """
+
+        self.splitter.feature_sampling(X)
 
         node = {'value': np.round(np.mean(y))}
 

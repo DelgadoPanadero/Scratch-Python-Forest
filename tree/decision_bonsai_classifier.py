@@ -96,10 +96,10 @@ class Splitter():
         self.max_features = max_features
 
 
-    def features_bagging(self, X):
+    def feature_sampling(self, X):
 
         """
-        It performs the bagging feature selection.
+        It performs the sample feature selection.
 
         Parameters
         ----------
@@ -107,10 +107,17 @@ class Splitter():
         """
 
         n_features = X.shape[1]
-        random = np.random.RandomState()
-        self.sample_features = random.choice(n_features,
-                                             self.max_features,
-                                             replace=True)
+        self.sample_features = [i for i in range(n_features)]
+
+        if self.max_features is None:
+            self.max_features = n_features
+
+        if self.max_features<n_features:
+            random = np.random.RandomState()
+            self.sample_features = random.choice(n_features,
+                                                 self.max_features,
+                                                 replace=False)
+
 
     def find_best_split(self, X, y):
 
@@ -236,7 +243,6 @@ class Builder():
         y : list, array-like (n_samples,). The target values as integers
         """
 
-        self.splitter.features_bagging(X) if max_features!=None else None
         bonsai.graph = self._add_split_node(X,y)
 
 
@@ -253,9 +259,14 @@ class Builder():
         depth: current depth of the node.
         """
 
+        self.splitter.feature_sampling(X)
+
         node = {'value': np.round(np.mean(y))}
 
-        if  len(y)<self.min_samples_leaf or depth >= self.max_depth:
+        if len(y)<self.min_samples_leaf or depth >= self.max_depth:
+            return node
+
+        if len(np.unique(y))==1:
             return node
 
         feature, threshold, impurity = self.splitter.find_best_split(X, y)

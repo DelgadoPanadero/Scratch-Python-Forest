@@ -17,16 +17,11 @@ class RandomGardenClassifier():
     def __init__(self,
                  n_estimators=100,
                  estimator_params=dict(),
-                 max_samples=None,
-                 max_features=None):
+                 max_samples=None):
 
         self.max_samples = max_samples
-        self.max_features = max_features
         self.n_estimators_ = n_estimators
         self.estimator_params = estimator_params
-
-        self.estimator_params["max_features"] = max_features
-
 
     def _make_estimator(self):
 
@@ -104,9 +99,6 @@ class RandomGardenClassifier():
         self.n_features_= X.shape[1]
         self.classes_ = np.unique(y)
         self.n_classes_ = self.classes_.shape[0]
-
-        if self.max_features is None:
-            self.max_features = X.shape[1]
 
         if self.max_samples:
             n_samples_bootstrap=self.max_samples

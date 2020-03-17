@@ -76,7 +76,7 @@ class BonsaiHarvester():
         """
 
         if not node.get('threshold'):
-            self.leaf_boxes.append(parent_box)
+            self.leaf_boxes.append({"box":parent_box, "value":node["value"]})
 
         else:
             left_node = node.get( 'left_node', {})
@@ -90,8 +90,11 @@ class BonsaiHarvester():
 
             self._divide_box_node(left_node, left_box )
             self._divide_box_node(right_node,right_box)
+
+
 if __name__=="__main__":
 
+    from pprint import pprint
     from sklearn.datasets import load_iris
     from tree import DecisionBonsaiClassifier
 
@@ -100,12 +103,16 @@ if __name__=="__main__":
     y = iris.target
 
     classifier = DecisionBonsaiClassifier(max_depth=7)
-    m = classifier.fit(X, y)
+    _ = classifier.fit(X, y)
 
     bonsai = classifier.bonsai_.graph
+    print("\n\nBONSAI GRAPH\n")
+    pprint(bonsai)
 
     harvester = BonsaiHarvester(X)
+    print("\n\nBONSAI BOX\n")
     print(harvester.bonsai_box)
 
     harvester.harvest_bonsai(bonsai)
-    print(harvester.leaf_boxes)
+    print("\n\nLEAF BOXES\n")
+    pprint(harvester.leaf_boxes)

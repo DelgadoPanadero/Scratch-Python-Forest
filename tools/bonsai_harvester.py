@@ -63,6 +63,21 @@ class BonsaiHarvester():
         self._divide_box_node(bonsai_graph, self.bonsai_box)
 
 
+    def harvest_garden(self, garden_classifier):
+
+        """
+        Given the Bonsai Garden classifier. Get the leafs of all the bonsais.
+
+        Parameters
+        ----------
+        node: Bonsai graph or Bonsai graph node.
+        """
+
+        for estimator in garden_classifier.estimators_:
+            bonsai = estimator.bonsai_.graph
+            harvester.harvest_bonsai(bonsai)
+
+
     def _divide_box_node(self, node, parent_box):
 
         """
@@ -122,7 +137,6 @@ if __name__=="__main__":
     classifier = RandomGardenClassifier(n_estimators=10)
     m = classifier.fit(X, y)
 
-    garden=[estimator.bonsai_.graph for estimator in classifier.estimators_]
+    harvester.harvest_garden(classifier)
     print("\n\HAVERST GARDEN\n")
-    [harvester.harvest_bonsai(bonsai) for bonsai in garden]
     pprint(harvester.leaf_boxes)

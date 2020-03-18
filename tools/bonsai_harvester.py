@@ -15,6 +15,7 @@ class BonsaiHarvester():
     """
 
     def __init__(self, X):
+
         self.leaf_boxes = []
         self.bonsai_box = X
 
@@ -97,13 +98,14 @@ if __name__=="__main__":
     from pprint import pprint
     from sklearn.datasets import load_iris
     from tree import DecisionBonsaiClassifier
+    from forest import RandomGardenClassifier
 
     iris = load_iris()
     X = iris.data
     y = iris.target
 
     classifier = DecisionBonsaiClassifier(max_depth=7)
-    _ = classifier.fit(X, y)
+    m = classifier.fit(X, y)
 
     bonsai = classifier.bonsai_.graph
     print("\n\nBONSAI GRAPH\n")
@@ -114,5 +116,13 @@ if __name__=="__main__":
     print(harvester.bonsai_box)
 
     harvester.harvest_bonsai(bonsai)
-    print("\n\nLEAF BOXES\n")
+    print("\n\HAVERST TREE\n")
+    pprint(harvester.leaf_boxes)
+
+    classifier = RandomGardenClassifier(n_estimators=10)
+    m = classifier.fit(X, y)
+
+    garden=[estimator.bonsai_.graph for estimator in classifier.estimators_]
+    print("\n\HAVERST GARDEN\n")
+    [harvester.harvest_bonsai(bonsai) for bonsai in garden]
     pprint(harvester.leaf_boxes)

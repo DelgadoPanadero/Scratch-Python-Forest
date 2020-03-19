@@ -1,11 +1,15 @@
 import numpy as np
 
 
-class MultidimensionalNMS():
+class MultidimensionalIOU():
 
     def _area(self, box):
+
         """
-        Compute the area of a box
+        Compute the area of a box.
+
+        Parameters
+        ----------
         """
 
         differences = box[:,1]-box[:,0]
@@ -23,7 +27,6 @@ class MultidimensionalNMS():
         box_1: narray of shape (n_feature,2)
         box_2: narray of shape (n_feature,2)
         """
-
         max_coord = np.maximum(box_1[:,0], box_2[:,0])
         min_coord = np.minimum(box_1[:,1], box_2[:,1])
 
@@ -54,3 +57,36 @@ class MultidimensionalNMS():
         intersection = self._intersection(box_1,box_2)
         union = self._area(box_1)+self._area(box_2)-intersection
         return intersection/union
+
+
+class LeafBoxesNMS():
+
+    selector = MultidimensionalIOU()
+
+    def __init__(self):
+        self.true_leaves = []
+
+
+    def filter(self, garden_leaves):
+
+        garden_size = len(garden_leaves)
+
+        for i in range(garden_size):
+
+            matches = [i]
+            for j in range(garden_size):
+
+                box_1 = garden_leaves[i]["box"]
+                box_2 = garden_leaves[j]["box"]
+
+                if self.selector.compute_iou(box_1,box_2)>0.5:
+                    matches.append(j)
+
+            if len(matches)>1:
+                values = [garden_leaves[i]["value"] for i in matches]
+                probs = [values.count(value)/len(values) for value in set(values)]
+
+                if any([prob>0.9 for prob in probs]):
+                    self.true_leaves.append(min(matches))
+
+        self.true_leaves = [garden_leaves[i] for i in set(self.true_leaves)]

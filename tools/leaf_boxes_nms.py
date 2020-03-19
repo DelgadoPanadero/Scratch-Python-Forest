@@ -90,3 +90,29 @@ class LeafBoxesNMS():
                     self.true_leaves.append(min(matches))
 
         self.true_leaves = [garden_leaves[i] for i in set(self.true_leaves)]
+
+
+if __name__=="__main__":
+
+    from pprint import pprint
+    from sklearn.datasets import load_iris
+
+    from tools import BonsaiHarvester
+    from tree import DecisionBonsaiClassifier
+    from forest import RandomGardenClassifier
+
+    iris = load_iris()
+    X = iris.data
+    y = iris.target
+
+    classifier = RandomGardenClassifier(n_estimators=100)
+    m = classifier.fit(X, y)
+
+    harvester = BonsaiHarvester(X)
+    harvester.harvest_garden(classifier)
+
+    leaf_boxes_nms = LeafBoxesNMS()
+    leaf_boxes_nms.filter(harvester.leaf_boxes)
+
+    print(len(harvester.leaf_boxes))
+    print(len(leaf_boxes_nms.true_leaves))

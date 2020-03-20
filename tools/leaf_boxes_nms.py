@@ -70,34 +70,49 @@ class LeafBoxesNMS():
         self.confidence_threshold = confidence_threshold
 
 
+    def _iou_similarity_filter(self, leaf_id, garden_leaves):
+
+
+        matches = [leaf_id]
+        for j in range(len(garden_leaves)):
+            if j>leaf_id:
+
+                box_1 = garden_leaves[leaf_id]["box"]
+                box_2 = garden_leaves[   j   ]["box"]
+
+                if self.selector.compute_iou(box_1,box_2)>self.iou_threshold:
+                    matches.append(j)
+
+        return matches
+
+    def _category_confidence_filter(self, matches, garden_leaves):
+
+        if len(matches)>1:
+            values = [garden_leaves[i]["value"] for i in matches]
+            probs = [values.count(value)/len(values) for value in set(values)]
+
+            if any([prob>self.confidence_threshold for prob in probs]):
+                return matches
+
+        return []
+
+
+
     def filter(self, garden_leaves):
 
-        garden_size = len(garden_leaves)
-
         matches_list=[]
-        for i in range(garden_size):
+        for leaf_id in range(len(garden_leaves)):
 
-            matches = [i]
-            for j in range(garden_size):
-
-                if j>i:
-
-                    box_1 = garden_leaves[i]["box"]
-                    box_2 = garden_leaves[j]["box"]
-
-                    if self.selector.compute_iou(box_1,box_2)>self.iou_threshold:
-                        matches.append(j)
-
-            if len(matches)>1:
-                values = [garden_leaves[i]["value"] for i in matches]
-                probs = [values.count(value)/len(values) for value in set(values)]
-
-                if any([prob>self.confidence_threshold for prob in probs]):
-                    matches_list.append(matches)
+            matches = self._iou_similarity_filter(leaf_id, garden_leaves)
+            matches = self._category_confidence_filter(matches, garden_leaves)
+            matches_list.append(matches)
 
         matches_list = [id for matches in matches_list for id in matches]
         matches_list = [id for id in matches_list if matches_list.count(id)==1]
-        self.true_leaves = [garden_leaves[i] for i in matches_list]
+
+        self.true_leaves = [garden_leaves[id] for id in matches_list]
+
+        return self.true_leaves
 
 
 if __name__=="__main__":

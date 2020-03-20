@@ -64,34 +64,40 @@ class LeafBoxesNMS():
     selector = MultidimensionalIOU()
 
     def __init__(self, iou_threshold=0.5, confidence_threshold=0.9):
+
         self.true_leaves = []
         self.iou_threshold = iou_threshold
-        self.confidence_threshold=confidence_threshold
+        self.confidence_threshold = confidence_threshold
 
 
     def filter(self, garden_leaves):
 
         garden_size = len(garden_leaves)
 
+        matches_list=[]
         for i in range(garden_size):
 
             matches = [i]
             for j in range(garden_size):
 
-                box_1 = garden_leaves[i]["box"]
-                box_2 = garden_leaves[j]["box"]
+                if j>i:
 
-                if self.selector.compute_iou(box_1,box_2)>self.iou_threshold:
-                    matches.append(j)
+                    box_1 = garden_leaves[i]["box"]
+                    box_2 = garden_leaves[j]["box"]
+
+                    if self.selector.compute_iou(box_1,box_2)>self.iou_threshold:
+                        matches.append(j)
 
             if len(matches)>1:
                 values = [garden_leaves[i]["value"] for i in matches]
                 probs = [values.count(value)/len(values) for value in set(values)]
 
                 if any([prob>self.confidence_threshold for prob in probs]):
-                    self.true_leaves.append(min(matches))
+                    matches_list.append(matches)
 
-        self.true_leaves = [garden_leaves[i] for i in set(self.true_leaves)]
+        matches_list = [id for matches in matches_list for id in matches]
+        matches_list = [id for id in matches_list if matches_list.count(id)==1]
+        self.true_leaves = [garden_leaves[i] for i in matches_list]
 
 
 if __name__=="__main__":

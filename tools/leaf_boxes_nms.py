@@ -3,13 +3,14 @@ import numpy as np
 
 class MultidimensionalIOU():
 
+    """
+    This class is a helper object aimed just to compute the IOU score
+    """
+
     def _area(self, box):
 
         """
         Compute the area of a box.
-
-        Parameters
-        ----------
         """
 
         differences = box[:,1]-box[:,0]
@@ -27,6 +28,7 @@ class MultidimensionalIOU():
         box_1: narray of shape (n_feature,2)
         box_2: narray of shape (n_feature,2)
         """
+
         max_coord = np.maximum(box_1[:,0], box_2[:,0])
         min_coord = np.minimum(box_1[:,1], box_2[:,1])
 
@@ -61,6 +63,16 @@ class MultidimensionalIOU():
 
 class LeafBoxesNMS():
 
+    """
+    This class filter the distinct leafs from the forest using the
+    Non Maximum Supression algorithm.
+
+    Parameters
+    ----------
+    iou_threshold: float interval (0, 1)
+    confidence_threshold: float interval (0, 1)
+    """
+
     selector = MultidimensionalIOU()
 
     def __init__(self, iou_threshold=0.5, confidence_threshold=0.9):
@@ -72,6 +84,16 @@ class LeafBoxesNMS():
 
     def _iou_similarity_filter(self, leaf_id, garden_leaves):
 
+        """
+        Given a leaf box id, filter all the leaves from the garden that
+        math with the iou score.
+
+
+        Parameters
+        ----------
+        leaf_id: int with the current leaf box id.
+        garden_leaves: list of leaves boxes returned by a BonsaiHarvester.
+        """
 
         matches = [leaf_id]
         for j in range(len(garden_leaves)):
@@ -87,6 +109,16 @@ class LeafBoxesNMS():
 
     def _category_confidence_filter(self, matches, garden_leaves):
 
+        """
+        Given a list of id, compute the confidence the caterory.
+
+
+        Parameters
+        ----------
+        matches: list of int, with the indexes of the garden leaves.
+        garden_leaves: list of leaves boxes returned by a BonsaiHarvester.
+        """
+
         if len(matches)>1:
             values = [garden_leaves[i]["value"] for i in matches]
             probs = [values.count(value)/len(values) for value in set(values)]
@@ -96,6 +128,15 @@ class LeafBoxesNMS():
 
 
     def filter(self, garden_leaves):
+
+
+        """
+        Filter the distinct leaves following the NMS algorithm.
+
+        Parameters
+        ----------
+        garden_leaves: list of leaves boxes returned by a BonsaiHarvester.
+        """
 
         matches_list=[]
         for leaf_id in range(len(garden_leaves)):

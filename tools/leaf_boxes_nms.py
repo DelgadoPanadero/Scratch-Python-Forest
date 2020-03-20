@@ -63,8 +63,10 @@ class LeafBoxesNMS():
 
     selector = MultidimensionalIOU()
 
-    def __init__(self):
+    def __init__(self, iou_threshold=0.5, confidence_threshold=0.9):
         self.true_leaves = []
+        self.iou_threshold = iou_threshold
+        self.confidence_threshold=confidence_threshold
 
 
     def filter(self, garden_leaves):
@@ -79,14 +81,14 @@ class LeafBoxesNMS():
                 box_1 = garden_leaves[i]["box"]
                 box_2 = garden_leaves[j]["box"]
 
-                if self.selector.compute_iou(box_1,box_2)>0.5:
+                if self.selector.compute_iou(box_1,box_2)>self.iou_threshold:
                     matches.append(j)
 
             if len(matches)>1:
                 values = [garden_leaves[i]["value"] for i in matches]
                 probs = [values.count(value)/len(values) for value in set(values)]
 
-                if any([prob>0.9 for prob in probs]):
+                if any([prob>self.confidence_threshold for prob in probs]):
                     self.true_leaves.append(min(matches))
 
         self.true_leaves = [garden_leaves[i] for i in set(self.true_leaves)]

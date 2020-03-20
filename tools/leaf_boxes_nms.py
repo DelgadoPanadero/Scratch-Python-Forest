@@ -94,9 +94,6 @@ class LeafBoxesNMS():
             if any([prob>self.confidence_threshold for prob in probs]):
                 return matches
 
-        return []
-
-
 
     def filter(self, garden_leaves):
 
@@ -107,10 +104,10 @@ class LeafBoxesNMS():
             matches = self._category_confidence_filter(matches, garden_leaves)
             matches_list.append(matches)
 
-        matches_list = [id for matches in matches_list for id in matches]
-        matches_list = [id for id in matches_list if matches_list.count(id)==1]
+        matches = [id for matches in matches_list if matches for id in matches]
+        matches = [id for id in matches if matches.count(id)==1]
 
-        self.true_leaves = [garden_leaves[id] for id in matches_list]
+        self.true_leaves = [garden_leaves[id] for id in matches]
 
         return self.true_leaves
 

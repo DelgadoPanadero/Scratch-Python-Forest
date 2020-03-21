@@ -61,6 +61,21 @@ class MultidimensionalIOU():
         return intersection/union
 
 
+    def compute_ioa(self, box_1, box_2):
+
+        """
+        Compute the Intersection of box_1 with box_2 over its area
+
+        Parameters
+        ----------
+        box_1: narray of shape (n_feature,2)
+        box_2: narray of shape (n_feature,2)
+        """
+
+        intersection = self._intersection(box_1,box_2)
+        return intersection/self._area(box_1)
+
+
 class LeafBoxesNMS():
 
     """
@@ -127,6 +142,23 @@ class LeafBoxesNMS():
                 return matches
 
 
+    def _filter_smallest_leaves(self, true_leaves):
+
+        """
+        Filter the smallest leaves.
+        """
+
+        matches = []
+        for leaf_1 in true_leaves:
+            for leaf_2 in true_leaves:
+                box_1 = leaf_1["box"]
+                box_2 = leaf_2["box"]
+                if self.selector.compute_ioa(box_1,box_2)>0.9 and box_1 is not box_2:
+                    matches.append(box_1)
+
+        return matches
+
+
     def filter(self, garden_leaves):
 
 
@@ -149,6 +181,7 @@ class LeafBoxesNMS():
         matches = [id for id in matches if matches.count(id)==1]
 
         self.true_leaves = [garden_leaves[id] for id in matches]
+        self.true_leaves = self._filter_smallest_leaves(self.true_leaves)
 
         return self.true_leaves
 

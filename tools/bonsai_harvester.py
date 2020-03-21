@@ -53,7 +53,7 @@ class BonsaiHarvester():
     def harvest_bonsai(self, bonsai_graph):
 
         """
-        Given the Bonsai json graph, compute the leafs space domain.
+        Given the Bonsai json graph, compute the leaves space domain.
 
         Parameters
         ----------
@@ -66,7 +66,7 @@ class BonsaiHarvester():
     def harvest_garden(self, garden_classifier):
 
         """
-        Given the Bonsai Garden classifier. Get the leafs of all the bonsais.
+        Given the Bonsai Garden classifier. Get the leaves of all the bonsais.
 
         Parameters
         ----------
@@ -81,7 +81,7 @@ class BonsaiHarvester():
     def _divide_box_node(self, node, parent_box):
 
         """
-        Recursive method to parse the Bonsai graph until the leafs and obtain
+        Recursive method to parse the Bonsai graph until the leaves and obtain
         its feature space domain.
 
         Parameters

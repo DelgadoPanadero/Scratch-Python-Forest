@@ -118,3 +118,126 @@ class MultinomialDevianceLoss():
             tree.value[leaf, 0, 0] = 0.0
         else:
             tree.value[leaf, 0, 0] = numerator / denominator
+
+
+class BoostingGardenClassifier():
+
+    """
+    Base class for forest of trees-based classifiers.
+    Warning: This class should not be used directly. Use derived classes
+    instead.
+    """
+
+    base_estimator_ = DecisionBonsaiClassifier()
+
+    def __init__(self,
+                 n_estimators=100,
+                 estimator_params=dict(),
+                 max_samples=None):
+
+        self.max_samples = max_samples
+        self.n_estimators_ = n_estimators
+        self.estimator_params = estimator_params
+
+
+    def predict(self, X):
+
+        """
+        Predict class for X.
+
+        Parameters
+        ----------
+        X : {array-like, dense matrix} of shape (n_samples, n_features)
+
+        Returns
+        -------
+        y : ndarray of shape (n_samples,) The predicted classes.
+        """
+
+        pass
+
+    def predict_proba(self, X):
+
+        """
+        Predict class probabilities for X.
+
+        Parameters
+        ----------
+        X : {array-like, dense matrix} of shape (n_samples, n_features)
+
+        Returns
+        -------
+        p : ndarray of shape (n_samples, n_classes) The class probabilities
+            of the input samples.
+        """
+
+        pass
+
+    def fit(self, X, y):
+
+        """
+        Build a forest of trees from the training set (X, y).
+        Parameters
+        ----------
+        X : {array-like, dense matrix} of shape (n_samples, n_features)
+        y : array-like of shape (n_samples,) The target values
+
+        Returns
+        -------
+        self : object
+        """
+
+        n_samples = X.shape[0]
+        n_samples_bootstrap = n_samples
+        self.n_features_= X.shape[1]
+        self.classes_ = np.unique(y)
+        self.n_classes_ = self.classes_.shape[0]
+
+        random = np.random.RandomState()
+
+        # Init prior probabilities for the first iteration
+        #TODO
+
+        # Init splitter and criterion
+        #TODO
+
+        # Perform boosting iterations
+        for i in range(begin_at_stage, self.n_estimators):
+
+            # fit next stage of trees
+            y_pred = self._fit_stage(i, X, y, y_pred, sample_mask)
+
+            # no need to fancy index w/ no subsampling
+            self.train_score_[i] = loss_(y, y_pred)
+
+        return self
+
+
+    def _fit_stage(self, i, X, y, y_pred, sample_mask):
+
+        """
+        Fit another stage of ``n_classes_`` trees to the boosting model.
+        """
+
+        for k in range(self.loss.K):
+
+            y = np.array(y == k, dtype=np.float64)
+
+            residual = loss.negative_gradient(y, y_pred, k=k)
+
+            # induce regression tree on residuals
+            tree = DecisionBonsaiClassifier(
+                      max_depth=self.max_depth,
+                      min_samples_leaf=self.min_samples_leaf,
+                      max_features=self.max_features)
+
+            tree.fit(X, residual, sample_weight=sample_weight)
+
+            # update tree leaves
+            loss.update_terminal_regions(tree.tree_, X, y, residual, y_pred,
+                                         sample_mask, self.learning_rate, k=k)
+
+            # add tree to ensemble
+            self.estimators_[i, k] = tree
+
+        return y_pred

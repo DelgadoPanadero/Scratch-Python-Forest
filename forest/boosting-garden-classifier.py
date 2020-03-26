@@ -135,13 +135,15 @@ class BoostingGardenClassifier():
                  n_estimators=100,
                  estimator_params=dict(),
                  max_samples=None,
+                 learning_rate=1.0,
                  subsample=1):
 
-        self.max_samples = max_samples
 
-        self.n_estimators_ = n_estimators
-        self.estimator_params = estimator_params
         self.subsample = subsample
+        self.max_samples = max_samples
+        self.n_estimators_ = n_estimators
+        self.learning_rate = learning_rate
+        self.estimator_params = estimator_params
 
     def predict(self, X):
 
@@ -176,11 +178,48 @@ class BoostingGardenClassifier():
             of the input samples.
         """
 
-        pass
+        proba = np.ones((score.shape[0], self.n_classes_), dtype=np.float64)
 
-    def decision_function(self,X):
+        score = self.decision_function(X)
 
-        pass
+        logsumexp = np.log(np.sum(np.exp(score)))
+
+        proba = np.nan_to_num(np.exp(score - logsumexp[:, np.newaxis]))
+
+        return proba
+
+
+
+    def decision_function(self, X):
+
+        """
+        Perform the decision
+
+        Parameters
+        ----------
+        X : {array-like, dense matrix} of shape (n_samples, n_features)
+        """
+
+
+        n_samples = X.shape[0]
+        out = np.zeros((n_samples, self.loss_.K))
+
+        for i in range(self.n_estimators_):
+            for k in range(self.loss_.K):
+                for j in range(n_samples):
+
+                    node = self.estimators_[i, k].bonsai_
+
+                    while node.get('left_child') and node.get('right_child'):
+
+                        if X[j, node.get('feature')] <= node.get('threshold'):
+                            node = node['left_child' ]
+                        else:
+                            node = node['right_child']
+
+                    out[j, k] += self.learning_rate * node.get('value',0.0)
+
+        return out
 
 
     def fit(self, X, y):

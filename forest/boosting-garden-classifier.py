@@ -54,7 +54,6 @@ class MultinomialDevianceLoss():
         """
 
         logsumexp = np.log(np.sum(np.exp(pred)))
-
         return y - np.nan_to_num(np.exp(pred[:,k]-logsumexp))
 
 
@@ -79,7 +78,10 @@ class MultinomialDevianceLoss():
         terminal_regions = [tree.apply(row) for row in X[~sample_mask,:]]
 
         # update each leaf (= perform line search)
-        for leaf in set(terminal_regions):
+        unique_regions = [dict(s) for s in set(frozenset(d.items())
+                                  for d in terminal_regions)]
+
+        for leaf in unique_regions: #set(terminal_regions):
             self._update_terminal_region(tree, terminal_regions, leaf,
                                                     X[~sample_mask  ],
                                                     y[~sample_mask  ],
@@ -129,21 +131,26 @@ class BoostingGardenClassifier():
     """
 
     loss_ = MultinomialDevianceLoss()
-    base_estimator_ = DecisionBonsaiClassifier()
+    base_estimator_ = DecisionBonsaiClassifier
+
 
     def __init__(self,
                  n_estimators=100,
                  estimator_params=dict(),
                  max_samples=None,
+                 max_depth=5,
+                 min_samples_leaf=1,
                  learning_rate=1.0,
                  subsample=1):
 
-
         self.subsample = subsample
+        self.max_depth = max_depth
         self.max_samples = max_samples
         self.n_estimators_ = n_estimators
         self.learning_rate = learning_rate
+        self.min_samples_leaf = min_samples_leaf
         self.estimator_params = estimator_params
+
 
     def predict(self, X):
 
@@ -208,9 +215,11 @@ class BoostingGardenClassifier():
             for k in range(self.loss_.K):
                 for j in range(n_samples):
 
-                    node = self.estimators_[i, k].bonsai_
+                    node = getattr(self.estimators_[i, k],"bonsai_", None)
+                    node = getattr(node,"graph", None)
 
-                    while node.get('left_child') and node.get('right_child'):
+                    while (node.get('left_child' , None) and
+                           node.get('right_child', None)):
 
                         if X[j, node.get('feature')] <= node.get('threshold'):
                             node = node['left_child' ]
@@ -249,18 +258,24 @@ class BoostingGardenClassifier():
 
         # Init splitter and criterion
         #TODO
+        self.estimators_ = np.empty((self.n_estimators_, self.loss_.K),
+                                    dtype=self.base_estimator_)
+
+        # Prior probability
+        y_pred = np.empty((n_samples, self.loss_.K), dtype=np.float64)
+        y_pred[:] = np.bincount(y) / float(y.shape[0])
 
         # Perform boosting iterations
         for i in range(self.n_estimators_):
 
             # predict for the actual state
-            y_pred = self.decision_function(X)
+            y_pred = self.decision_function(X) if self.estimators_.any() else y_pred
 
             # fit next stage of trees
             y_pred = self._fit_stage(i, X, y, y_pred, sample_mask)
 
             # no need to fancy index w/ no subsampling
-            self.train_score_[i] = self.loss_(y, y_pred)
+            #self.train_score_[i] = self.loss_(y, y_pred)
 
         return self
 
@@ -279,22 +294,23 @@ class BoostingGardenClassifier():
             residual = self.loss_.negative_gradient(y, y_pred, k=k)
 
             # Residuals to binary
-            residual = np.int(1/(1 + np.exp(-residual))>0.5)
+            residual = (1/(1 + np.exp(-residual))>0.5).astype('int32')
 
             # induce regression tree on residuals
             bonsai = DecisionBonsaiClassifier(
-                      max_depth=self.max_depth,
-                      min_samples_leaf=self.min_samples_leaf)
+                                      max_depth = self.max_depth,
+                                      min_samples_leaf = self.min_samples_leaf
+                                      )
 
-            bonsai.fit(X, residual, sample_weight=sample_weight)
+            bonsai.fit(X[~sample_mask,:], residual[~sample_mask])
 
             # update tree leaves
-            y_pred = self.loss.update_terminal_regions(bonsai.bonsai_, X, y,
-                                                       residual, y_pred,
-                                                       sample_mask,
-                                                       self.learning_rate, k)
+            y_pred = self.loss_.update_terminal_regions(bonsai.bonsai_, X, y,
+                                                        residual, y_pred,
+                                                        sample_mask,
+                                                        self.learning_rate, k)
 
             # add tree to ensemble
-            self.estimators_[i, k] = tree
+            self.estimators_[i, k] = bonsai
 
         return y_pred

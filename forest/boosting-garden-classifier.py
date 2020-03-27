@@ -116,10 +116,10 @@ class MultinomialDevianceLoss():
         # Compute new value
         numerator = residual.sum()*(self.K-1)/self.K
         denominator = np.sum((y-residual)*(1.0-y+residual))
+        new_value = numerator/denominator if denominator!=0.0 else 0.0
 
         # Substitute the value
-        tree.apply(X[region_mask,:][0,:])["value"] = numerator/denominator
-
+        tree.apply(X[region_mask,:][0,:])["value"] = new_value
 
 
 class BoostingGardenClassifier():
@@ -185,16 +185,17 @@ class BoostingGardenClassifier():
             of the input samples.
         """
 
-        proba = np.ones((score.shape[0], self.n_classes_), dtype=np.float64)
 
         score = self.decision_function(X)
 
+        proba = np.ones((score.shape[0], self.loss_.K), dtype=np.float64)
+
         logsumexp = np.log(np.sum(np.exp(score)))
 
-        proba = np.nan_to_num(np.exp(score - logsumexp[:, np.newaxis]))
+        proba = np.nan_to_num(np.exp(score - logsumexp))
+#        proba = np.nan_to_num(np.exp(score - logsumexp[:, np.newaxis]))
 
         return proba
-
 
 
     def decision_function(self, X):
@@ -216,7 +217,7 @@ class BoostingGardenClassifier():
                 for j in range(n_samples):
 
                     node = getattr(self.estimators_[i, k],"bonsai_", None)
-                    node = getattr(node,"graph", None)
+                    node = getattr(node,"graph", {})
 
                     while (node.get('left_child' , None) and
                            node.get('right_child', None)):

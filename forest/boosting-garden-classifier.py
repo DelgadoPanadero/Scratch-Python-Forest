@@ -245,29 +245,25 @@ class BoostingGardenClassifier():
         -------
         self : object
         """
-
+        
         n_samples = X.shape[0]
         self.classes_ = np.unique(y)
+        self.loss_.K = self.classes_.shape[0]
         mask_size = int(self.subsample*n_samples)
 
-        # Data sample
-        random = np.random.RandomState()
-        sample_mask = np.random.choice(n_samples, mask_size, replace=False)
-
-        # Init prior probabilities for the first iteration
-        self.loss_.K = self.classes_.shape[0]
-
-        # Init splitter and criterion
-        #TODO
+        # Init splitter and criterion #TODO
         self.estimators_ = np.empty((self.n_estimators_, self.loss_.K),
                                     dtype=self.base_estimator_)
 
-        # Prior probability
+        # Init prior probabilities for the first iteration
         y_pred = np.empty((n_samples, self.loss_.K), dtype=np.float64)
         y_pred[:] = np.bincount(y) / float(y.shape[0])
 
         # Perform boosting iterations
         for i in range(self.n_estimators_):
+
+            # Data sample
+            sample_mask = np.random.choice(n_samples, mask_size, replace=False)
 
             # predict for the actual state
             y_pred = self.decision_function(X) if self.estimators_.any() else y_pred
@@ -279,8 +275,8 @@ class BoostingGardenClassifier():
             #self.train_score_[i] = self.loss_(y, y_pred)
 
         return self
-
-
+    
+    
     def _fit_stage(self, i, X, y, y_pred, sample_mask):
 
         """

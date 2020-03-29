@@ -286,7 +286,7 @@ class Builder():
 
         node = {'value': np.round(np.mean(y))}
 
-        if len(y)<self.min_samples_leaf or depth >= self.max_depth:
+        if len(y)<=self.min_samples_leaf or depth >= self.max_depth:
             return node
 
         if len(np.unique(y))==1:
@@ -297,8 +297,8 @@ class Builder():
         y_left = y[X[:,feature] < threshold]
         y_right =y[X[:,feature] >=threshold]
 
-        if (len(y_left) >= self.min_samples_leaf and
-            len(y_right)>= self.min_samples_leaf):
+        if (len(y_left) > self.min_samples_leaf or
+            len(y_right)> self.min_samples_leaf):
 
             X_left = X[X[:, feature] < threshold]
             X_right = X[X[:,feature] >=threshold]

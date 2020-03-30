@@ -59,7 +59,7 @@ class Criterion():
         sample: list, data sample of values.
         """
 
-        return np.sum(sample-np.mean(sample))
+        return np.sum(np.square(np.array(sample)-np.mean(sample))
 
 
 class Splitter():

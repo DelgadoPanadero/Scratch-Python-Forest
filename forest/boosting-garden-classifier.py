@@ -77,11 +77,11 @@ class MultinomialDevianceLoss():
         # compute leaf for each sample in ``X``.
         terminal_regions = [tree.apply(row) for row in X[~sample_mask,:]]
 
-        # update each leaf (= perform line search)
-        unique_regions = [dict(s) for s in set(frozenset(d.items())
-                                  for d in terminal_regions)]
+        # Get the unique regions from all terminal regions
+        unique_region_pointers = set([id(d) for d in terminal_regions])
 
-        for leaf in unique_regions: #set(terminal_regions):
+        # Update each leaf (= perform line search)
+        for leaf in unique_region_pointers:
             self._update_terminal_region(tree, terminal_regions, leaf,
                                                     X[~sample_mask  ],
                                                     y[~sample_mask  ],

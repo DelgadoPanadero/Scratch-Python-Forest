@@ -59,7 +59,7 @@ class Criterion():
         sample: list, data sample of values.
         """
 
-        return np.sum(np.square(np.array(sample)-np.mean(sample))
+        return np.sum(np.square(np.array(sample)-np.mean(sample)))
 
 
 class Splitter():
@@ -71,8 +71,8 @@ class Splitter():
     Parameters
     ---------
     criterion: Criterion.
-    max_features: 
-    min_samples_leaf: 
+    max_features: int. Maximum number of features to look for the split.
+    min_samples_leaf: int default=5. Minimum number of register in a leaf node
     """
 
     def __init__(self, criterion, max_features, min_samples_leaf):
@@ -80,6 +80,7 @@ class Splitter():
         self.criterion = criterion
         self.max_features = max_features
         self.min_samples_leaf = min_samples_leaf
+
 
     def feature_sampling(self, X):
 
@@ -244,7 +245,7 @@ class Builder():
         ----------
         X : dense matrix, The training input samples.
         y : list, array-like (n_samples,). The target values as integers.
-        depth: current depth of the node.
+        depth: int, default=0. Current depth of the node.
         """
 
         self.splitter.feature_sampling(X)
@@ -279,16 +280,16 @@ class Builder():
 class DecisionBonsaiRegressor():
 
     """
-    A decision tree classifier. This object is expected to work as a lite
-    version of the DecisionTreeClassifier from Scikit-Learn (That is why
+    A decision tree regressor. This object is expected to work as a lite
+    version of the DecisionTreeRegressor from Scikit-Learn (That is why
     it is called Bonsai!).
 
     Parameters
     ----------
     criterion : {"gini", "entropy"}, default="gini"
     splitter : "depth-first"
-    max_depth : int, default=5
-    min_samples_leaf: int default=5
+    max_depth : int, default=5. Maximum tree depth
+    min_samples_leaf: int default=5. Minimum number of register in a leaf node
     """
 
     def __init__(self,
@@ -363,13 +364,13 @@ if __name__=="__main__":
     X = iris.data
     y = iris.target
 
-    classifier = DecisionBonsaiRegressor(max_depth=7)
-    m = classifier.fit(X, y)
+    model = DecisionBonsaiRegressor(max_depth=7)
+    m = model.fit(X, y)
 
     print("\n\nBONSAI GRAPH\n")
-    pprint(classifier.bonsai_.graph)
+    pprint(model.bonsai_.graph)
 
-    print("\n\nCONFUSION MATRIX\n")
-    prediction = classifier.predict(iris.data)
-    for row in zip(y,prediction):
+    print("\n\nPREDICTION MSE\n")
+    prediction = model.predict(iris.data)
+    for row in zip(y,np.round(prediction,2)):
         print(row)

@@ -182,7 +182,8 @@ class Bonsai():
 
         results = np.zeros(X.shape[0])
         for row_index, row_value in enumerate(X):
-            results[row_index] = self.apply(row_value)
+            leaf_node = self.apply(row_value)
+            results[row_index] = leaf_node.get('value')
 
         return results
 
@@ -205,7 +206,7 @@ class Bonsai():
             else:
                 current_node = current_node['right_node']
         else:
-            return current_node.get('value')
+            return current_node
 
 
 class Builder():

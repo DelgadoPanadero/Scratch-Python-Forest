@@ -30,12 +30,13 @@ class MultinomialDevianceLoss():
 
     """
     Multinomial deviance loss function for multi-class classification.
-    For multi-class classification we need to fit ``n_classes`` trees at
+    For multi-class classification we need to fit n_classes bonsais at
     each stage.
 
     Parameters
     ----------
-    K : int The number of regression trees to be induced.
+    K : int The number of DecisionBonsaiRegressors to be induced for each
+    class.
     """
 
     def __init__(self, n_classes=2):
@@ -45,13 +46,14 @@ class MultinomialDevianceLoss():
     def negative_gradient(self, y, pred, k=0):
 
         """
-        Compute negative gradient for the ``k``-th class.
+        Compute negative gradient for the k-th class.
 
         Parameters
         ----------
         y : np.ndarray, shape=(n,) The target labels.
         y_pred : np.ndarray, shape=(n,): The predictions.
         """
+
         pred_T = np.rollaxis(pred, 1)
         vmax = pred_T.max(axis=0)
         logsumexp = np.log(np.sum(np.exp(pred_T-vmax), axis=0)) + vmax
@@ -59,17 +61,17 @@ class MultinomialDevianceLoss():
         return y - np.nan_to_num(np.exp(pred[:,k]-logsumexp))
 
 
-    def update_terminal_regions(self, tree, X, y, residual, y_pred,
+    def update_terminal_regions(self, bonsai, X, y, residual, y_pred,
                                 sample_mask, learning_rate=1.0, k=0):
 
         """
-        Update the terminal regions (=leaves) of the given tree and
-        updates the current predictions of the model. Traverses tree
+        Update the terminal regions (leaves) of the given Bonsai and
+        updates the current predictions of the model. Traverses bonsai
         and invokes template method `_update_terminal_region`.
 
         Parameters
         ----------
-        tree : tree.Tree The tree object.
+        bonsai : DecisionBonsaiRegressor. The bonsai object.
         X : np.ndarray, shape=(n, m) The data array.
         y : np.ndarray, shape=(n,) The target labels.
         residual : np.ndarray, shape=(n,) The residuals (negative gradient).
@@ -77,27 +79,27 @@ class MultinomialDevianceLoss():
         """
 
         # compute leaf for each sample in ``X``.
-        terminal_regions = [tree.apply(row) for row in X[~sample_mask,:]]
+        terminal_regions = [bonsai.apply(row) for row in X[~sample_mask,:]]
 
         # Get the unique regions from all terminal regions
         unique_region_pointers = set([id(d) for d in terminal_regions])
 
-        # update each leaf (= perform line search)
+        # Update each leaf (= perform line search)
         for leaf in unique_region_pointers:
-            self._update_terminal_region(tree, terminal_regions, leaf,
-                                                    X[~sample_mask  ],
-                                                    y[~sample_mask  ],
-                                             residual[~sample_mask  ],
-                                               y_pred[~sample_mask,k])
+            self._update_terminal_region(bonsai, terminal_regions, leaf,
+                                                      X[~sample_mask  ],
+                                                      y[~sample_mask  ],
+                                               residual[~sample_mask  ],
+                                                 y_pred[~sample_mask,k])
 
-        # update predictions (both in-bag and out-of-bag)
-        terminal_values=[tree.apply(row)["value"] for row in X[~sample_mask,:]]
+        # Update predictions (both in-bag and out-of-bag)
+        terminal_values=[bonsai.apply(x)["value"] for x in X[~sample_mask,:]]
         y_pred[:, k] += learning_rate * np.array(terminal_values)
 
         return y_pred
 
 
-    def _update_terminal_region(self, tree, terminal_regions, leaf, X, y,
+    def _update_terminal_region(self, bonsai, terminal_regions, leaf, X, y,
                                 residual, pred):
 
         """
@@ -106,6 +108,16 @@ class MultinomialDevianceLoss():
             sum(y - prob) / sum(prob * (1 - prob))
 
         we take advantage that: y - prob = residual
+
+        Parameters
+        ----------
+        bonsai : DecisionBonsaiRegressor. The bonsai object.
+        terminal_regions: list. Memory pointers to the bonsai leafs.
+        leaf: int, memory pointer to a leaf id to update.
+        X : np.ndarray, shape=(n, m) The data array.
+        y : np.ndarray, shape=(n,) The target labels.
+        residual : np.ndarray, shape=(n,) The residuals (negative gradient).
+        y_pred : np.ndarray, shape=(n,) The predictions.
         """
 
         # Pointer filter mask
@@ -121,15 +133,19 @@ class MultinomialDevianceLoss():
         new_value = numerator/denominator if denominator!=0.0 else 0.0
 
         # Substitute the value
-        tree.apply(X[region_mask,:][0,:])["value"] = new_value
+        bonsai.apply(X[region_mask,:][0,:])["value"] = new_value
 
 
 class BoostingGardenClassifier():
 
     """
-    Base class for forest of trees-based classifiers.
-    Warning: This class should not be used directly. Use derived classes
-    instead.
+    Gradient Boosting for classification.
+
+    GB builds an additive model in a forward stage-wise fashion; it allows
+    for the optimization of arbitrary differentiable loss functions. In each
+    stage n_classes_ regression bonsais are fit on the negative gradient of
+    the binomial or multinomial deviance loss function. Binary classification
+    is a special case where only a single regression bonsai is induced.
     """
 
     loss_ = MultinomialDevianceLoss()
@@ -161,10 +177,6 @@ class BoostingGardenClassifier():
         Parameters
         ----------
         X : {array-like, dense matrix} of shape (n_samples, n_features)
-
-        Returns
-        -------
-        y : ndarray of shape (n_samples,) The predicted classes.
         """
 
         proba = self.predict_proba(X)
@@ -179,21 +191,16 @@ class BoostingGardenClassifier():
         Parameters
         ----------
         X : {array-like, dense matrix} of shape (n_samples, n_features)
-
-        Returns
-        -------
-        p : ndarray of shape (n_samples, n_classes) The class probabilities
-            of the input samples.
         """
 
+        # Get the scores from the bonsai essemble
         score = self.decision_function(X)
-
         score_T = np.rollaxis(score, 1)
         vmax = score_T.max(axis=0)
 
+        # Compute the probabilities
         proba = np.ones((score.shape[0], self.loss_.K), dtype=np.float64)
         logsumexp = np.log(np.sum(np.exp(score_T-vmax), axis=0)) + vmax
-
         proba = np.nan_to_num(np.exp(score - logsumexp[:, np.newaxis]))
 
         return proba
@@ -202,7 +209,8 @@ class BoostingGardenClassifier():
     def decision_function(self, X):
 
         """
-        Perform the decision
+        Preform the prediction from every Bonsai in the essemble and
+        aggregate them together.
 
         Parameters
         ----------
@@ -225,15 +233,12 @@ class BoostingGardenClassifier():
     def fit(self, X, y):
 
         """
-        Build a forest of trees from the training set (X, y).
+        Build a forest of bonsais from the training set (X, y).
+
         Parameters
         ----------
         X : {array-like, dense matrix} of shape (n_samples, n_features)
         y : array-like of shape (n_samples,) The target values
-
-        Returns
-        -------
-        self : object
         """
 
         n_samples = X.shape[0]
@@ -255,13 +260,13 @@ class BoostingGardenClassifier():
             # Data sample
             sample_mask = np.random.choice(n_samples, mask_size, replace=False)
 
-            # predict for the actual state
+            # Predict for the actual state
             y_pred = self.decision_function(X) if i>0 else y_pred
 
-            # fit next stage of trees
+            # Fit next stage of bonsai
             y_pred = self._fit_stage(i, X, y, y_pred, sample_mask)
 
-            # no need to fancy index w/ no subsampling
+            # No need to fancy index w/ no subsampling
             #self.train_score_[i] = self.loss_(y, y_pred)
 
         return self
@@ -270,10 +275,11 @@ class BoostingGardenClassifier():
     def _fit_stage(self, i, X, y, y_pred, sample_mask):
 
         """
-        Fit another stage of ``n_classes_`` trees to the boosting model.
+        Fit another stage of n_classes_ bonsai to the boosting model.
         """
 
         original_y = y
+
         for k in range(self.loss_.K):
 
             # Binary tarjet
@@ -282,21 +288,21 @@ class BoostingGardenClassifier():
             # Compute residuals
             residual = self.loss_.negative_gradient(y, y_pred, k=k)
 
-            # Induce regression tree on residuals
+            # Induce regression bonsai on residuals
             bonsai = DecisionBonsaiRegressor(
                                       max_depth = self.max_depth,
                                       min_samples_leaf = self.min_samples_leaf
                                       )
 
-            # Train the tree
+            # Train the bonsai
             bonsai.fit(X[~sample_mask,:], residual[~sample_mask])
 
-            # Update tree leaves
+            # Update bonsai leaves
             y_pred = self.loss_.update_terminal_regions(bonsai.bonsai_, X, y,
                                                         residual, y_pred,
                                                         sample_mask,
                                                         self.learning_rate, k)
-            # Add tree to ensemble
+            # Add bonsai to ensemble
             self.estimators_[i, k] = bonsai
 
         return y_pred

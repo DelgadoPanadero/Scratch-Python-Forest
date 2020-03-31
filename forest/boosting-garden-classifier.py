@@ -187,7 +187,7 @@ class BoostingGardenClassifier():
         """
 
         score = self.decision_function(X)
-        print(score)
+
         score_T = np.rollaxis(score, 1)
         vmax = score_T.max(axis=0)
 
@@ -296,8 +296,25 @@ class BoostingGardenClassifier():
                                                         residual, y_pred,
                                                         sample_mask,
                                                         self.learning_rate, k)
-
             # Add tree to ensemble
             self.estimators_[i, k] = bonsai
 
         return y_pred
+
+
+if __name__=="__main__":
+
+    from sklearn.datasets import load_iris
+    from sklearn.metrics import confusion_matrix
+    from pprint import pprint
+
+    iris = load_iris()
+    X = iris.data
+    y = iris.target
+
+    classifier = BoostingGardenClassifier(n_estimators=100)
+    classifier = classifier.fit(X, y)
+
+    print("\n\nCONFUSION MATRIX\n")
+    prediction = classifier.predict(iris.data)
+    print(confusion_matrix(y,prediction))

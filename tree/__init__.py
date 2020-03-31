@@ -1,1 +1,2 @@
+from .decision_bonsai_regressor  import DecisionBonsaiRegressor
 from .decision_bonsai_classifier import DecisionBonsaiClassifier

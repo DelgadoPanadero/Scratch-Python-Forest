@@ -74,7 +74,7 @@ class Criterion():
             if 0<count_k:
                 #WIP: Averaged entropy works worse unexpectedly
                 #count_k /= weighted_n_node_samples
-                entropy -= count_k*np.log2(count_k)
+                entropy -= count_k*np.log2(count_k/weighted_n_node_samples)
 
         return entropy
 
@@ -292,7 +292,7 @@ class Builder():
 
         if len(y)<=self.min_samples_leaf:
             return node
-        
+
         if depth >= self.max_depth:
             return node
 

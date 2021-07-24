@@ -72,7 +72,8 @@ class Criterion():
         for c in n_classes:
             count_k = sum(sample==c)
             if 0<count_k:
-                count_k /= weighted_n_node_samples
+                #WIP: Averaged entropy works worse unexpectedly
+                #count_k /= weighted_n_node_samples
                 entropy -= count_k*np.log2(count_k)
 
         return entropy

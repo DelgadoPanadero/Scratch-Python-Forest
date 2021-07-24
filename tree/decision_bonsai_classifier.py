@@ -154,8 +154,8 @@ class Splitter():
         """
 
         index = None
-        min_impurity = 100
         threshold = None
+        min_impurity = np.inf
 
         for feature_index, feature_values in enumerate(X.T):
             if feature_index in self.sample_features:
@@ -180,7 +180,9 @@ class Splitter():
         y : list, array-like (n_samples,). The target values as integers
         """
 
-        min_impurity = 100
+        threshold = np.inf
+        min_impurity = np.inf
+
         for value in set(feature_values):
             y_predict = feature_values < value
             impurity = self.criterion.node_impurity(y[~y_predict])

@@ -92,7 +92,7 @@ class Criterion():
         n_classes = set(sample)
         weighted_n_node_samples = len(sample)
 
-        for c in range(n_classes):
+        for c in n_classes:
             count_k = sum(sample==c)
             sq_count += count_k**2
 
@@ -190,7 +190,7 @@ class Splitter():
                 min_impurity = impurity
                 threshold = value
 
-        return impurity, threshold
+        return min_impurity, threshold
 
 
 class Bonsai():
@@ -216,7 +216,7 @@ class Bonsai():
         results = np.zeros(X.shape[0])
         for row_index, row_value in enumerate(X):
             leaf_node = self.apply(row_value)
-            results[row_index] = leaf_node..get('value')
+            results[row_index] = leaf_node.get('value')
 
         return results.astype(int)
 

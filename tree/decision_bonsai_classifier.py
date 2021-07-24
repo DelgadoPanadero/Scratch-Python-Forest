@@ -284,7 +284,8 @@ class Builder():
 
         self.splitter.feature_sampling(X)
 
-        node = {'value': np.round(np.mean(y))}
+        values, counts = np.unique(y, return_counts=True)
+        node = {'value' : values[np.argmax(counts)]}
 
         if len(y)<=self.min_samples_leaf:
             return node

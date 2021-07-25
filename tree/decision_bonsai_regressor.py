@@ -59,7 +59,13 @@ class Criterion():
         sample: list, data sample of values.
         """
 
-        return np.sum(np.square(np.array(sample)-np.mean(sample)))
+        mse = 0.0
+
+        if len(sample)>0:
+            sample = np.array(sample)
+            mse = np.sum(np.square(sample-np.mean(sample)))
+
+        return mse
 
 
 class Splitter():
@@ -220,6 +226,7 @@ class Builder():
         self.max_depth = max_depth
         self.min_samples_leaf = min_samples_leaf
 
+
     def build(self, bonsai, X, y):
 
         """
@@ -252,7 +259,7 @@ class Builder():
 
         node = {'value': np.mean(y)}
 
-        if len(y)<=self.min_samples_leaf
+        if len(y)<=self.min_samples_leaf:
             return node
 
         if depth >= self.max_depth:

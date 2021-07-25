@@ -186,8 +186,8 @@ class Splitter():
 
         for value in set(feature_values):
             y_predict = feature_values < value
-            impurity = self.criterion.node_impurity(y[~y_predict])
-            impurity += self.criterion.node_impurity(y[y_predict])
+            impurity  = self.criterion.node_impurity(y[~y_predict])
+            impurity += self.criterion.node_impurity(y[ y_predict])
 
             if impurity <= min_impurity:
                 min_impurity = impurity
@@ -307,7 +307,7 @@ class Builder():
         if (len(y_left) >= self.min_samples_leaf and
             len(y_right)>= self.min_samples_leaf):
 
-            X_left = X[X[:, feature] < threshold]
+            X_left  = X[X[:,feature] < threshold]
             X_right = X[X[:,feature] >=threshold]
 
             node[ 'feature'  ] = feature
@@ -380,6 +380,8 @@ class DecisionBonsaiClassifier():
 
         self.builder.build(self.bonsai_,X,y)
 
+        return self
+
 
     def predict(self, X):
 
@@ -408,6 +410,7 @@ if __name__=="__main__":
     m = classifier.fit(X, y)
     print("\n\nBONSAI GRAPH\n")
     pprint(classifier.bonsai_.graph)
+    print("\\"+"‾"*80+"/\n \\"+"_"*78+"/")
 
     print("\n\nCONFUSION MATRIX\n")
     prediction = classifier.predict(iris.data)

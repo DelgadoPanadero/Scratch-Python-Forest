@@ -141,23 +141,22 @@ class Splitter():
         Parameters
         ----------
         feature_values : list, array-like of shape (n_samples,). Column feature
-        y : list, array-like (n_samples,). The target values as integers
+        y : list, array-like (n_samples,). The target values as integers.
         """
 
+        threshold = np.inf
         min_impurity = np.inf
-        ordered_values = np.sort(feature_values)[self.min_samples_leaf:
-                                                -self.min_samples_leaf]
 
-        for val in np.unique(ordered_values):
+        for val in np.unique(feature_values):
             y_predict = feature_values < val
-            impurity =  self.criterion.node_impurity(y[~y_predict])
+            impurity  = self.criterion.node_impurity(y[~y_predict])
             impurity += self.criterion.node_impurity(y[ y_predict])
 
             if impurity <= min_impurity:
                 min_impurity = impurity
                 threshold = val
 
-        return impurity, threshold
+        return min_impurity, threshold
 
 
 class Bonsai():
@@ -253,7 +252,10 @@ class Builder():
 
         node = {'value': np.mean(y)}
 
-        if len(y)<=2*self.min_samples_leaf or depth >= self.max_depth:
+        if len(y)<=self.min_samples_leaf
+            return node
+
+        if depth >= self.max_depth:
             return node
 
         if len(np.unique(y))==1:
@@ -264,10 +266,10 @@ class Builder():
         y_left = y[X[:,feature] < threshold]
         y_right =y[X[:,feature] >=threshold]
 
-        if (len(y_left) > 2*self.min_samples_leaf or
-            len(y_right)> 2*self.min_samples_leaf ):
+        if (len(y_left) >= self.min_samples_leaf and
+            len(y_right)>= self.min_samples_leaf ):
 
-            X_left = X[ X[:,feature] < threshold]
+            X_left  = X[X[:,feature] < threshold]
             X_right = X[X[:,feature] >=threshold]
 
             node[ 'feature'  ] = feature
@@ -287,7 +289,7 @@ class DecisionBonsaiRegressor():
 
     Parameters
     ----------
-    criterion : {"gini", "entropy"}, default="gini"
+    criterion : {"mse"}
     splitter : "depth-first"
     max_depth : int, default=5. Maximum tree depth
     min_samples_leaf: int default=5. Minimum number of register in a leaf node
@@ -341,6 +343,8 @@ class DecisionBonsaiRegressor():
 
         self.builder.build(self.bonsai_,X,y)
 
+        return self
+
 
     def predict(self, X):
 
@@ -357,21 +361,17 @@ class DecisionBonsaiRegressor():
 
 if __name__=="__main__":
 
+    from sklearn.metrics import r2_score
     from sklearn.datasets import load_boston
-    from sklearn.metrics import confusion_matrix
-    from pprint import pprint
+    from sklearn.model_selection import train_test_split
 
-    iris = load_boston()
-    X = iris.data
-    y = iris.target
+    boston = load_boston()
+    X = boston.data
+    y = boston.target
+    X_train, X_test, y_train, y_test = train_test_split(X,y)
 
-    model = DecisionBonsaiRegressor(max_depth=7)
-    m = model.fit(X, y)
+    reg = DecisionBonsaiRegressor(max_depth=15)
+    reg.fit(X_train, y_train)
 
-    print("\n\nBONSAI GRAPH\n")
-    pprint(model.bonsai_.graph)
-
-    print("\n\nPREDICTION MSE\n")
-    prediction = model.predict(iris.data)
-    for row in zip(y,np.round(prediction,2)):
-        print(row)
+    y_pred = reg.predict(X_test)
+    print(r2_score(y_test, y_pred))

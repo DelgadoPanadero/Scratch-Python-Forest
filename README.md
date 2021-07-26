@@ -15,7 +15,7 @@ This project consist on implementing common tree and forest algorithms in plain 
 
 
 <p align="center">
-    <img src="PythonBonsai.png" alt="Image" width="50%" height="50%" />
+    <img src="images/PythonBonsai.png" alt="Image" width="50%" height="50%" />
 </p>
 
 ## The Zen of Python Trees

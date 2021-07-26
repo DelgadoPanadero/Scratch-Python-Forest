@@ -23,7 +23,7 @@
 import copy
 import numpy as np
 
-from tree import DecisionBonsaiRegressor
+from ..bonsai import DecisionBonsaiRegressor
 
 
 class MultinomialDevianceLoss():

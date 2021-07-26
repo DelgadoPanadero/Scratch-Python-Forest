@@ -23,7 +23,7 @@
 import copy
 import numpy as np
 
-from tree import DecisionBonsaiClassifier
+from ..bonsai import DecisionBonsaiClassifier
 
 
 class RandomGardenClassifier():

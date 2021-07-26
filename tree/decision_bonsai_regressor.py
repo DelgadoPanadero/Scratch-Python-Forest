@@ -81,11 +81,10 @@ class Splitter():
     min_samples_leaf: int default=5. Minimum number of register in a leaf node
     """
 
-    def __init__(self, criterion, max_features, min_samples_leaf):
+    def __init__(self, criterion, max_features):
 
         self.criterion = criterion
         self.max_features = max_features
-        self.min_samples_leaf = min_samples_leaf
 
 
     def feature_sampling(self, X):
@@ -153,14 +152,14 @@ class Splitter():
         threshold = np.inf
         min_impurity = np.inf
 
-        for val in np.unique(feature_values):
-            y_predict = feature_values < val
+        for value in np.unique(feature_values):
+            y_predict = feature_values < value
             impurity  = self.criterion.node_impurity(y[~y_predict])
             impurity += self.criterion.node_impurity(y[ y_predict])
 
             if impurity <= min_impurity:
                 min_impurity = impurity
-                threshold = val
+                threshold = value
 
         return min_impurity, threshold
 
@@ -270,8 +269,8 @@ class Builder():
 
         feature, threshold, impurity = self.splitter.find_best_split(X, y)
 
-        y_left = y[X[:,feature] < threshold]
-        y_right =y[X[:,feature] >=threshold]
+        y_left  = y[X[:,feature] < threshold]
+        y_right = y[X[:,feature] >=threshold]
 
         if (len(y_left) >= self.min_samples_leaf and
             len(y_right)>= self.min_samples_leaf ):
@@ -305,7 +304,7 @@ class DecisionBonsaiRegressor():
     def __init__(self,
                  criterion="mse",
                  max_depth=7,
-                 min_samples_leaf=5,
+                 min_samples_leaf=1,
                  max_features=None):
 
         self.criterion = criterion
@@ -342,8 +341,7 @@ class DecisionBonsaiRegressor():
         self.bonsai_ = Bonsai()
         self.criterion = Criterion(self.criterion)
         self.splitter = Splitter(self.criterion,
-                                 self.max_features,
-                                 self.min_samples_leaf)
+                                 self.max_features)
         self.builder = Builder(self.splitter,
                                self.max_depth,
                                self.min_samples_leaf)
@@ -364,21 +362,3 @@ class DecisionBonsaiRegressor():
         """
 
         return self.bonsai_.predict(X)
-
-
-if __name__=="__main__":
-
-    from sklearn.metrics import r2_score
-    from sklearn.datasets import load_boston
-    from sklearn.model_selection import train_test_split
-
-    boston = load_boston()
-    X = boston.data
-    y = boston.target
-    X_train, X_test, y_train, y_test = train_test_split(X,y)
-
-    reg = DecisionBonsaiRegressor(max_depth=15)
-    reg.fit(X_train, y_train)
-
-    y_pred = reg.predict(X_test)
-    print(r2_score(y_test, y_pred))

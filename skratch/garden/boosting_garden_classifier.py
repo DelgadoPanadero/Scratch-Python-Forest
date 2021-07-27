@@ -153,7 +153,6 @@ class BoostingGardenClassifier():
 
     def __init__(self,
                  n_estimators=100,
-                 estimator_params=dict(),
                  max_samples=None,
                  max_depth=5,
                  min_samples_leaf=1,
@@ -166,7 +165,6 @@ class BoostingGardenClassifier():
         self.n_estimators_ = n_estimators
         self.learning_rate = learning_rate
         self.min_samples_leaf = min_samples_leaf
-        self.estimator_params = estimator_params
 
 
     def predict(self, X):
@@ -289,10 +287,9 @@ class BoostingGardenClassifier():
             residual = self.loss_.negative_gradient(y, y_pred, k=k)
 
             # Induce regression bonsai on residuals
-            bonsai = DecisionBonsaiRegressor(
-                                      max_depth = self.max_depth,
-                                      min_samples_leaf = self.min_samples_leaf
-                                      )
+            estimator = copy.deepcopy(self.base_estimator_)
+            bonsai = estimator(max_depth = self.max_depth,
+                               min_samples_leaf = self.min_samples_leaf)
 
             # Train the bonsai
             bonsai.fit(X[~sample_mask,:], residual[~sample_mask])

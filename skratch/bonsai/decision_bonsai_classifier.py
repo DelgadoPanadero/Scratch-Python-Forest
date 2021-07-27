@@ -184,7 +184,7 @@ class Splitter():
         threshold = np.inf
         min_impurity = np.inf
 
-        for value in set(feature_values):
+        for value in np.unique(feature_values):
             y_predict = feature_values < value
             impurity  = self.criterion.node_impurity(y[~y_predict])
             impurity += self.criterion.node_impurity(y[ y_predict])
@@ -282,7 +282,7 @@ class Builder():
         ----------
         X : dense matrix, The training input samples.
         y : list, array-like (n_samples,). The target values as integers.
-        depth: current depth of the node.
+        depth: int, default=0. Current depth of the node.
         """
 
         self.splitter.feature_sampling(X)
@@ -305,7 +305,7 @@ class Builder():
         y_right = y[X[:,feature] >=threshold]
 
         if (len(y_left) >= self.min_samples_leaf and
-            len(y_right)>= self.min_samples_leaf):
+            len(y_right)>= self.min_samples_leaf ):
 
             X_left  = X[X[:,feature] < threshold]
             X_right = X[X[:,feature] >=threshold]
@@ -329,8 +329,8 @@ class DecisionBonsaiClassifier():
     ----------
     criterion : {"gini", "entropy"}, default="gini"
     splitter : "depth-first"
-    max_depth : int, default=5
-    min_samples_leaf: int default=5
+    max_depth : int, default=5. Maximum tree depth
+    min_samples_leaf: int default=5. Minimum number of register in a leaf node
     """
 
     def __init__(self,
@@ -394,24 +394,3 @@ class DecisionBonsaiClassifier():
         """
 
         return self.bonsai_.predict(X)
-
-
-if __name__=="__main__":
-
-    from sklearn.datasets import load_iris
-    from sklearn.metrics import confusion_matrix
-    from pprint import pprint
-
-    iris = load_iris()
-    X = iris.data
-    y = iris.target
-
-    classifier = DecisionBonsaiClassifier(max_depth=7)
-    m = classifier.fit(X, y)
-    print("\n\nBONSAI GRAPH\n")
-    pprint(classifier.bonsai_.graph)
-    print("\\"+"‾"*80+"/\n \\"+"_"*78+"/")
-
-    print("\n\nCONFUSION MATRIX\n")
-    prediction = classifier.predict(iris.data)
-    print(confusion_matrix(y,prediction))

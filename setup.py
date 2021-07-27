@@ -1,9 +1,9 @@
 from setuptools import setup
 from setuptools import find_packages
 
-setup(name='BonsaiGarden',
+setup(name='skratch-python-forest',
       version='0.0',
-      description='The funniest joke in the world',
+      description='Have fun!',
       url='https://github.com/DelgadoPanadero/Scratch-Python-Forest.git',
       author='Angel Delgado',
       author_email='delgadopanadero@gmail.com',

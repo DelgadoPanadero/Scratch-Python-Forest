@@ -23,7 +23,7 @@
 import copy
 import numpy as np
 
-from tree import DecisionBonsaiRegressor
+from ..bonsai import DecisionBonsaiRegressor
 
 
 class MultinomialDevianceLoss():
@@ -306,21 +306,3 @@ class BoostingGardenClassifier():
             self.estimators_[i, k] = bonsai
 
         return y_pred
-
-
-if __name__=="__main__":
-
-    from sklearn.datasets import load_iris
-    from sklearn.metrics import confusion_matrix
-    from pprint import pprint
-
-    iris = load_iris()
-    X = iris.data
-    y = iris.target
-
-    classifier = BoostingGardenClassifier(n_estimators=100)
-    classifier = classifier.fit(X, y)
-
-    print("\n\nCONFUSION MATRIX\n")
-    prediction = classifier.predict(iris.data)
-    print(confusion_matrix(y,prediction))

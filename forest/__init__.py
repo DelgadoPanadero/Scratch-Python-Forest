@@ -1,2 +1,0 @@
-from .random_garden_classifier import RandomGardenClassifier
-from .boosting_garden_classifier import BoostingGardenClassifer

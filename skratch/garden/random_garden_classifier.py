@@ -23,7 +23,7 @@
 import copy
 import numpy as np
 
-from tree import DecisionBonsaiClassifier
+from ..bonsai import DecisionBonsaiClassifier
 
 
 class RandomGardenClassifier():
@@ -135,30 +135,3 @@ class RandomGardenClassifier():
             estimator.fit(X[sample_indices,:], y[sample_indices])
 
         return self
-
-
-if __name__=="__main__":
-
-
-    from sklearn.datasets import load_iris
-    from sklearn.metrics import confusion_matrix
-    from pprint import pprint
-
-    iris = load_iris()
-    X = iris.data
-    y = iris.target
-
-    estimator_params = {
-        "max_features": X.shape[1]-2,
-        "max_samples" : X.shape[0]/0.6
-    }
-
-    classifier = RandomGardenClassifier(n_estimators=100,
-                                        estimator_params=dict())
-
-    m = classifier.fit(X, y)
-    print(m)
-
-    print("\n\nCONFUSION MATRIX\n")
-    prediction = classifier.predict(iris.data)
-    print(confusion_matrix(y,prediction))

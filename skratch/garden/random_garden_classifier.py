@@ -34,16 +34,21 @@ class RandomGardenClassifier():
     instead.
     """
 
-    base_estimator_ = DecisionBonsaiClassifier()
+    base_estimator_ = DecisionBonsaiClassifier
 
     def __init__(self,
-                 n_estimators=100,
-                 estimator_params=dict(),
-                 max_samples=None):
+                 max_depth=5,
+                 max_samples=None,
+                 max_features=None,
+                 n_estimators=10,
+                 min_samples_leaf=1):
 
+        self.max_depth = max_depth
         self.max_samples = max_samples
+        self.max_features = max_features
         self.n_estimators_ = n_estimators
-        self.estimator_params = estimator_params
+        self.min_samples_leaf = min_samples_leaf
+
 
     def _make_estimator(self):
 
@@ -52,9 +57,10 @@ class RandomGardenClassifier():
         """
 
         estimator = copy.deepcopy(self.base_estimator_)
-        [setattr(estimator, p, v) for p, v in self.estimator_params.items()]
 
-        return estimator
+        return estimator(max_depth = self.max_depth,
+                         max_features = self.max_features,
+                         min_samples_leaf = self.min_samples_leaf)
 
 
     def predict(self, X):

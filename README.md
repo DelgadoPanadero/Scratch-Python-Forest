@@ -177,6 +177,29 @@ y_pred = clf.predict(X_test)
 print(confusion_matrix(y_test,y_pred))
 ```
 
+## Visualize Splits
+
+```python
+from sklearn.datasets import load_iris
+
+from skratch.tools import SplitVisualizer
+from skratch.bonsai.decision_bonsai_classifier import DecisionBonsaiClassifier
+
+data = load_iris()
+X = data.data
+y = data.target
+
+clf = DecisionBonsaiClassifier()
+clf.fit(X,y)
+
+SplitVisualizer().plot(clf,X,y)
+```
+<p align="left">
+    <img src="images/iris_splits_feature0_feature1.png" alt="Image" width="33%" height="33%" />
+    <img src="images/iris_splits_feature1_feature2.png" alt="Image" width="33%" height="33%" />
+    <img src="images/iris_splits_feature2_feature3.png" alt="Image" width="33%" height="33%" />
+</p>
+
 
 #### Contact and Help
 

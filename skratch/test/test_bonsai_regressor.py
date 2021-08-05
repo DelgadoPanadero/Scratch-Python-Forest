@@ -4,11 +4,25 @@ import unittest
 
 import numpy as np
 
-from sklearn.metrics import r2_score
-from sklearn.datasets import load_boston
-from sklearn.datasets import load_diabetes
+from skratch.datasets import load_boston
+from skratch.datasets import load_diabetes
 
 from skratch.bonsai import DecisionBonsaiRegressor
+
+
+def r2_score(y_true, y_pred):
+
+    """
+    Very similar to the Sklearn implementation but without weights and single
+    output.
+    """
+
+    numerator = ((y_true-y_pred)**2).sum(axis=0,dtype=np.float64)
+    denominator = ((y_true - np.average(y_true, axis=0)
+                    )** 2).sum(axis=0,dtype=np.float64)
+    score = 1 - (numerator/ denominator)
+
+    return score
 
 
 class ParameterssTest(unittest.TestCase):

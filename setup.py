@@ -9,11 +9,8 @@ setup(name='skratch-python-forest',
       author_email='delgadopanadero@gmail.com',
       license='MIT',
       packages=find_packages(),
+      package_data={"": ["*.csv"]},
       install_requires=[
-          "joblib==0.14.1",
           "numpy==1.18.1",
-          "scipy==1.4.1",
-          "sklearn==0.0",
-          "scikit-learn==0.22.1"
       ],
 )

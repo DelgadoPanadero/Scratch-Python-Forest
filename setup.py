@@ -12,5 +12,6 @@ setup(name='skratch-python-forest',
       package_data={"": ["*.csv"]},
       install_requires=[
           "numpy==1.18.1",
+          "matplotlib==3.4.2",
       ],
 )

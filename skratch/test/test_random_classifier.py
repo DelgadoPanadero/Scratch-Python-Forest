@@ -4,9 +4,9 @@ import unittest
 
 import numpy as np
 
-from sklearn.datasets import load_iris
-from sklearn.datasets import load_wine
-from sklearn.datasets import load_breast_cancer
+from skratch.datasets import load_iris
+from skratch.datasets import load_wine
+from skratch.datasets import load_breast_cancer
 
 from skratch.garden import RandomGardenClassifier
 

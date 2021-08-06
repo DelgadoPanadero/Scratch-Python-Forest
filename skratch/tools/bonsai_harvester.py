@@ -133,7 +133,7 @@ class BonsaiHarvester():
 if __name__=="__main__":
 
     from pprint import pprint
-    from sklearn.datasets import load_iris
+    from skratch.datasets import load_iris
     from tree import DecisionBonsaiClassifier
     from forest import RandomGardenClassifier
 

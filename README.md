@@ -1,7 +1,8 @@
 # Python Forest from Scratch
 
 ![python-versions](https://img.shields.io/badge/python-3.7%20%7C%203.8%20%7C%203.9-blue)
-![python-package](https://github.com/DelgadoPanadero/Scratch-Python-Forest/actions/workflows/python-package.yml/badge.svg)
+![package-build](https://github.com/DelgadoPanadero/Scratch-Python-Forest/actions/workflows/package-build.yml/badge.svg)
+![code-testing](https://github.com/DelgadoPanadero/Scratch-Python-Forest/actions/workflows/code-testing.yml/badge.svg)
 
 
 <p align="center">

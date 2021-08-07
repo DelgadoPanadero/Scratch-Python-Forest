@@ -165,7 +165,7 @@ class ScoreTest(unittest.TestCase):
 
         X = load_diabetes().data
         y = load_diabetes().target
-        clf = DecisionBonsaiRegressor().fit(X, y)
+        clf = DecisionBonsaiRegressor(max_depth=10).fit(X, y)
         y_pred = clf.predict(X)
 
         assert r2_score(y, y_pred)>0.8

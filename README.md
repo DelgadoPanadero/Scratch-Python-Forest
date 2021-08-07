@@ -1,5 +1,7 @@
 # Python Forest from Scratch
 
+![example workflow](https://github.com/DelgadoPanadero/Scratch-Python-Forest/actions/workflows/python-package.yml/badge.svg)
+
 
 <p align="center">
     <img src="images/PythonBonsai.png" alt="Image" width="50%" height="50%" />

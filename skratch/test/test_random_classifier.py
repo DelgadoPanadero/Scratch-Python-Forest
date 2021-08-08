@@ -11,7 +11,7 @@ from skratch.datasets import load_breast_cancer
 from skratch.garden import RandomGardenClassifier
 
 
-class ParameterssTest(unittest.TestCase):
+class ParametersTest(unittest.TestCase):
 
     def test_max_depth(self):
 
@@ -39,19 +39,6 @@ class ParameterssTest(unittest.TestCase):
             clf = RandomGardenClassifier(min_samples_leaf=i).fit(X, y)
 
 
-    def test_min_samples(self):
-
-        """
-        Test that the model fits and predicts with different parameter values
-        for min_samples_leaf=1,2,3,5,10.
-        """
-
-        for i in [3,5,10,13]:
-            X = load_wine().data
-            y = load_wine().target
-            clf = RandomGardenClassifier(max_features=i).fit(X, y)
-
-
 class TransformationTest(unittest.TestCase):
 
     def test_random(self):
@@ -69,7 +56,7 @@ class TransformationTest(unittest.TestCase):
         X_train, X_test = X[0:400,:], X[400:,:]
         y_train, y_test = y[0:400], y[400:]
 
-        clf = RandomGardenClassifier().fit(X_train, y_train)
+        clf = RandomGardenClassifier(n_estimators=3).fit(X_train, y_train)
 
         y_pred = clf.predict(X_test)
         acc = np.sum(y_pred==y_test)/len(y_test)
@@ -90,7 +77,7 @@ class ScoreTest(unittest.TestCase):
         X = load_iris().data
         y = load_iris().target
 
-        clf = RandomGardenClassifier().fit(X, y)
+        clf = RandomGardenClassifier(n_estimators=3).fit(X, y)
         y_pred = clf.predict(X)
 
         assert np.sum(y_pred==y)/len(y) > 0.9
@@ -106,7 +93,7 @@ class ScoreTest(unittest.TestCase):
         X = load_wine().data
         y = load_wine().target
 
-        clf = RandomGardenClassifier().fit(X, y)
+        clf = RandomGardenClassifier(n_estimators=3).fit(X, y)
         y_pred = clf.predict(X)
 
         assert np.sum(y_pred==y)/len(y) > 0.9
@@ -122,7 +109,7 @@ class ScoreTest(unittest.TestCase):
         X = load_breast_cancer().data
         y = load_breast_cancer().target
 
-        clf = RandomGardenClassifier().fit(X, y)
+        clf = RandomGardenClassifier(n_estimators=3).fit(X, y)
         y_pred = clf.predict(X)
 
         assert np.sum(y_pred==y)/len(y) > 0.9

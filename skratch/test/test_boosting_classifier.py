@@ -56,7 +56,7 @@ class TransformationTest(unittest.TestCase):
         X_train, X_test = X[0:400,:], X[400:,:]
         y_train, y_test = y[0:400], y[400:]
 
-        clf = BoostingGardenClassifier().fit(X_train, y_train)
+        clf = BoostingGardenClassifier(n_estimators=3).fit(X_train, y_train)
 
         y_pred = clf.predict(X_test)
         acc = np.sum(y_pred==y_test)/len(y_test)
@@ -73,14 +73,14 @@ class TransformationTest(unittest.TestCase):
         X = load_iris().data
         y = load_iris().target
 
-        clf1 = BoostingGardenClassifier().fit(X, y)
+        clf1 = BoostingGardenClassifier(n_estimators=3).fit(X, y)
         y_pred1 = clf1.predict(X)
 
         X = X.T
         np.random.shuffle(X)
         X = X.T
 
-        clf2 = BoostingGardenClassifier().fit(X, y)
+        clf2 = BoostingGardenClassifier(n_estimators=3).fit(X, y)
         y_pred2 = clf2.predict(X)
 
         assert (y_pred1==y_pred2).all()
@@ -95,12 +95,12 @@ class TransformationTest(unittest.TestCase):
         X = load_iris().data
         y = load_iris().target
 
-        clf1 = BoostingGardenClassifier().fit(X, y)
+        clf1 = BoostingGardenClassifier(n_estimators=3).fit(X, y)
         y_pred1 = clf1.predict(X)
 
         X = X * np.random.randint(1,10,size=X.shape[1])
 
-        clf2 = BoostingGardenClassifier().fit(X, y)
+        clf2 = BoostingGardenClassifier(n_estimators=3).fit(X, y)
         y_pred2 = clf2.predict(X)
 
         assert (y_pred1==y_pred2).all()
@@ -118,7 +118,7 @@ class ScoreTest(unittest.TestCase):
         X = load_iris().data
         y = load_iris().target
 
-        clf = BoostingGardenClassifier().fit(X, y)
+        clf = BoostingGardenClassifier(n_estimators=3).fit(X, y)
         y_pred = clf.predict(X)
 
         assert np.sum(y_pred==y)/len(y) > 0.9
@@ -134,7 +134,7 @@ class ScoreTest(unittest.TestCase):
         X = load_wine().data
         y = load_wine().target
 
-        clf = BoostingGardenClassifier().fit(X, y)
+        clf = BoostingGardenClassifier(n_estimators=3).fit(X, y)
         y_pred = clf.predict(X)
 
         assert np.sum(y_pred==y)/len(y) > 0.9
@@ -150,7 +150,7 @@ class ScoreTest(unittest.TestCase):
         X = load_breast_cancer().data
         y = load_breast_cancer().target
 
-        clf = BoostingGardenClassifier().fit(X, y)
+        clf = BoostingGardenClassifier(n_estimators=3).fit(X, y)
         y_pred = clf.predict(X)
 
         assert np.sum(y_pred==y)/len(y) > 0.9

@@ -23,7 +23,7 @@ class ParametersTest(unittest.TestCase):
         for i in [1,2,3,5,10,20]:
             X = load_iris().data
             y = load_iris().target
-            clf = RandomGardenClassifier(max_depth=i).fit(X, y)
+            RandomGardenClassifier(max_depth=i).fit(X, y)
 
 
     def test_min_samples(self):
@@ -36,7 +36,7 @@ class ParametersTest(unittest.TestCase):
         for i in [1,2,3,5,10]:
             X = load_iris().data
             y = load_iris().target
-            clf = RandomGardenClassifier(min_samples_leaf=i).fit(X, y)
+            RandomGardenClassifier(min_samples_leaf=i).fit(X, y)
 
 
 class TransformationTest(unittest.TestCase):

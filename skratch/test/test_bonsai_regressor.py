@@ -37,7 +37,7 @@ class ParameterssTest(unittest.TestCase):
         for i in [1,2,3,5,10,20]:
             X = load_boston().data
             y = load_boston().target
-            clf = DecisionBonsaiRegressor(max_depth=i).fit(X, y)
+            DecisionBonsaiRegressor(max_depth=i).fit(X, y)
 
 
     def test_min_samples(self):
@@ -50,7 +50,7 @@ class ParameterssTest(unittest.TestCase):
         for i in [1,2,3,5,10]:
             X = load_boston().data
             y = load_boston().target
-            clf = DecisionBonsaiRegressor(min_samples_leaf=i).fit(X, y)
+            DecisionBonsaiRegressor(min_samples_leaf=i).fit(X, y)
 
 
 class TransformationTest(unittest.TestCase):
